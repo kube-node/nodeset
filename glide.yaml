@@ -1,0 +1,13 @@
+package: kube-node/nodeset
+ignore:
+  - net
+  - net/rpc
+  - net/url
+  - net/http
+  - net/textproto
+import:
+- package: k8s.io/apimachinery
+  version: release-1.6
+- package: k8s.io/client-go
+  version: 3.0.0-beta.0
+- package: github.com/ugorji/go/codec/codecgen

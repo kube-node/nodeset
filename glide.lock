@@ -1,5 +1,5 @@
-hash: 57fe76fd0af40cb4a77cf410cd550812fe4025a887551abec3093ff2ae962ce7
-updated: 2017-05-08T15:06:00.153986498+08:00
+hash: b1ff2c4159caaaf8d09999a142234793b1c7d3d61768d5b1dd18729c0d766e1a
+updated: 2017-05-12T22:45:54.226058918+08:00
 imports:
 - name: github.com/davecgh/go-spew
   version: 5215b55f46b2b919f50a1df0eaa5886afe4e3b3d
@@ -14,6 +14,7 @@ imports:
   version: 09691a3b6378b740595c1002f40c34dd5f218a22
   subpackages:
   - log
+  - swagger
 - name: github.com/ghodss/yaml
   version: 73d445a93680fa1a78ae23a5839bad48f32ba1ee
 - name: github.com/go-openapi/jsonpointer
@@ -33,6 +34,8 @@ imports:
   version: 44145f04b68cf362d9c4df2182967c2275eaefed
 - name: github.com/google/gofuzz
   version: 44d81051d367757e1c7c6a5a86423ece9afcf63c
+- name: github.com/juju/ratelimit
+  version: 77ed1c8a01217656d2080ad51981f6e99adaa177
 - name: github.com/mailru/easyjson
   version: d5b7844b561a7bc640052f1b935f7b800330d7e0
   subpackages:
@@ -53,6 +56,8 @@ imports:
 - name: golang.org/x/net
   version: e90d6d0afc4c315a0d87a568ae68577cc15149a0
   subpackages:
+  - context
+  - context/ctxhttp
   - http2
   - http2/hpack
   - idna
@@ -77,6 +82,7 @@ imports:
 - name: k8s.io/apimachinery
   version: bd3049bf8da9c381539035332a12c033c33271e2
   subpackages:
+  - pkg/api/errors
   - pkg/api/meta
   - pkg/api/resource
   - pkg/apimachinery
@@ -95,6 +101,7 @@ imports:
   - pkg/runtime/serializer/json
   - pkg/runtime/serializer/protobuf
   - pkg/runtime/serializer/recognizer
+  - pkg/runtime/serializer/streaming
   - pkg/runtime/serializer/versioning
   - pkg/selection
   - pkg/types
@@ -110,14 +117,33 @@ imports:
   - pkg/util/validation/field
   - pkg/util/wait
   - pkg/util/yaml
+  - pkg/version
   - pkg/watch
   - third_party/forked/golang/reflect
 - name: k8s.io/client-go
   version: 3627aeb7d4f6ade38f995d2c923e459146493c7e
   subpackages:
+  - discovery
   - pkg/api
   - pkg/api/v1
   - pkg/apis/extensions
   - pkg/util
   - pkg/util/parsers
+  - pkg/version
+  - rest
+  - rest/watch
+  - tools/clientcmd/api
+  - tools/metrics
+  - transport
+  - util/cert
+  - util/clock
+  - util/flowcontrol
+  - util/integer
+- name: k8s.io/gengo
+  version: af11bb557f39e95a87de321f8a84da95880bb36c
+- name: k8s.io/kubernetes
+  version: 477efc3cbe6a7effca06bd1452fa356e2201e1ee
+  subpackages:
+  - cmd/libs/go2idl/client-gen
+  - cmd/libs/go2idl/defaulter-gen
 testImports: []

@@ -1,0 +1,37 @@
+#!/bin/bash
+
+# Copyright 2017 The Kubernetes Authors.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+KUBE_ROOT=$(dirname "${BASH_SOURCE}")/..
+PACKAGE_BASE=${PACKAGE_BASE:-"kube-node/nodeset"}
+CLIENT_PATH=$PACKAGE_BASE/pkg/client
+
+client-gen --help >/dev/null 2>/dev/null
+if [ "$?" -eq "2" ]; then
+  CLIENT_GEN=client-gen
+else
+  CLIENT_GEN=$(pwd)/client-gen
+  go build -o "${CLIENT_GEN}" ./vendor/k8s.io/kubernetes/cmd/libs/go2idl/client-gen
+fi
+
+echo Removing old clientset
+rm -rf "pkg/client/clientset_v1alpha1"
+
+echo Generating clientset
+${CLIENT_GEN} --input-base "${PACKAGE_BASE}/pkg" --input "nodeset/v1alpha1" --clientset-path "${CLIENT_PATH}" --clientset-name clientset_v1alpha1 --fake-clientset=false 
+
+
+
+

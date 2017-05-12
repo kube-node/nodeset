@@ -11,3 +11,11 @@ import:
 - package: k8s.io/client-go
   version: 3.0.0-beta.0
 - package: github.com/ugorji/go/codec/codecgen
+- package: github.com/golang/glog
+- package: k8s.io/gengo
+- package: k8s.io/kubernetes
+  version: v1.6.2
+  subpackages:
+    - cmd/libs/go2idl/client-gen
+    - cmd/libs/go2idl/defaulter-gen
+

@@ -27,6 +27,8 @@ type NodeClassResourceType string
 const (
 	NodeClassResourceFile      NodeClassResourceType = "File"
 	NodeClassResourceReference NodeClassResourceType = "Reference"
+
+	TPRNamespace = "default"
 )
 
 type NodeClassResource struct {

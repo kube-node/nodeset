@@ -16,7 +16,8 @@
 
 KUBE_ROOT=$(dirname "${BASH_SOURCE}")/..
 PACKAGE_BASE=${PACKAGE_BASE:-"kube-node/nodeset"}
-CLIENT_PATH=$PACKAGE_BASE/pkg/client
+CLIENT_PATH=pkg/client
+CLIENT_NAME=clientset_v1alpha1
 
 client-gen --help >/dev/null 2>/dev/null
 if [ "$?" -eq "2" ]; then
@@ -27,11 +28,14 @@ else
 fi
 
 echo Removing old clientset
-rm -rf "pkg/client/clientset_v1alpha1"
+rm -rf "pkg/client/$CLIENT_NAME"
 
 echo Generating clientset
-${CLIENT_GEN} --input-base "${PACKAGE_BASE}/pkg" --input "nodeset/v1alpha1" --clientset-path "${CLIENT_PATH}" --clientset-name clientset_v1alpha1 --fake-clientset=false 
+${CLIENT_GEN} --input-base "${PACKAGE_BASE}/pkg" --input "nodeset/v1alpha1" --clientset-path "${PACKAGE_BASE}/${CLIENT_PATH}" --clientset-name "$CLIENT_NAME" --fake-clientset=true
 
+# Inject namespace into client coz TPR requires a namespace
+find ${CLIENT_PATH} -name '*.go' | xargs sed -i -e '/\tNamespace(c\.ns)\./d' \
+  -e 's/\tResource(/\tNamespace(v1alpha1.TPRNamespace).\n\t\tResource(/g' 
 
 
 

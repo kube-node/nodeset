@@ -60,6 +60,7 @@ func newNodeClasses(c *NodesetV1alpha1Client) *nodeClasses {
 func (c *nodeClasses) Create(nodeClass *v1alpha1.NodeClass) (result *v1alpha1.NodeClass, err error) {
 	result = &v1alpha1.NodeClass{}
 	err = c.client.Post().
+		Namespace(v1alpha1.TPRNamespace).
 		Resource("nodeclasses").
 		Body(nodeClass).
 		Do().
@@ -71,6 +72,7 @@ func (c *nodeClasses) Create(nodeClass *v1alpha1.NodeClass) (result *v1alpha1.No
 func (c *nodeClasses) Update(nodeClass *v1alpha1.NodeClass) (result *v1alpha1.NodeClass, err error) {
 	result = &v1alpha1.NodeClass{}
 	err = c.client.Put().
+		Namespace(v1alpha1.TPRNamespace).
 		Resource("nodeclasses").
 		Name(nodeClass.Name).
 		Body(nodeClass).
@@ -82,6 +84,7 @@ func (c *nodeClasses) Update(nodeClass *v1alpha1.NodeClass) (result *v1alpha1.No
 // Delete takes name of the nodeClass and deletes it. Returns an error if one occurs.
 func (c *nodeClasses) Delete(name string, options *v1.DeleteOptions) error {
 	return c.client.Delete().
+		Namespace(v1alpha1.TPRNamespace).
 		Resource("nodeclasses").
 		Name(name).
 		Body(options).
@@ -92,6 +95,7 @@ func (c *nodeClasses) Delete(name string, options *v1.DeleteOptions) error {
 // DeleteCollection deletes a collection of objects.
 func (c *nodeClasses) DeleteCollection(options *v1.DeleteOptions, listOptions v1.ListOptions) error {
 	return c.client.Delete().
+		Namespace(v1alpha1.TPRNamespace).
 		Resource("nodeclasses").
 		VersionedParams(&listOptions, scheme.ParameterCodec).
 		Body(options).
@@ -103,6 +107,7 @@ func (c *nodeClasses) DeleteCollection(options *v1.DeleteOptions, listOptions v1
 func (c *nodeClasses) Get(name string, options v1.GetOptions) (result *v1alpha1.NodeClass, err error) {
 	result = &v1alpha1.NodeClass{}
 	err = c.client.Get().
+		Namespace(v1alpha1.TPRNamespace).
 		Resource("nodeclasses").
 		Name(name).
 		VersionedParams(&options, scheme.ParameterCodec).
@@ -115,6 +120,7 @@ func (c *nodeClasses) Get(name string, options v1.GetOptions) (result *v1alpha1.
 func (c *nodeClasses) List(opts v1.ListOptions) (result *v1alpha1.NodeClassList, err error) {
 	result = &v1alpha1.NodeClassList{}
 	err = c.client.Get().
+		Namespace(v1alpha1.TPRNamespace).
 		Resource("nodeclasses").
 		VersionedParams(&opts, scheme.ParameterCodec).
 		Do().
@@ -126,6 +132,7 @@ func (c *nodeClasses) List(opts v1.ListOptions) (result *v1alpha1.NodeClassList,
 func (c *nodeClasses) Watch(opts v1.ListOptions) (watch.Interface, error) {
 	opts.Watch = true
 	return c.client.Get().
+		Namespace(v1alpha1.TPRNamespace).
 		Resource("nodeclasses").
 		VersionedParams(&opts, scheme.ParameterCodec).
 		Watch()
@@ -135,6 +142,7 @@ func (c *nodeClasses) Watch(opts v1.ListOptions) (watch.Interface, error) {
 func (c *nodeClasses) Patch(name string, pt types.PatchType, data []byte, subresources ...string) (result *v1alpha1.NodeClass, err error) {
 	result = &v1alpha1.NodeClass{}
 	err = c.client.Patch(pt).
+		Namespace(v1alpha1.TPRNamespace).
 		Resource("nodeclasses").
 		SubResource(subresources...).
 		Name(name).

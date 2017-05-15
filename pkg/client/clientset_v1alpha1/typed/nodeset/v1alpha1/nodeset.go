@@ -63,7 +63,7 @@ func newNodeSets(c *NodesetV1alpha1Client, namespace string) *nodeSets {
 func (c *nodeSets) Create(nodeSet *v1alpha1.NodeSet) (result *v1alpha1.NodeSet, err error) {
 	result = &v1alpha1.NodeSet{}
 	err = c.client.Post().
-		Namespace(c.ns).
+		Namespace(v1alpha1.TPRNamespace).
 		Resource("nodesets").
 		Body(nodeSet).
 		Do().
@@ -75,7 +75,7 @@ func (c *nodeSets) Create(nodeSet *v1alpha1.NodeSet) (result *v1alpha1.NodeSet, 
 func (c *nodeSets) Update(nodeSet *v1alpha1.NodeSet) (result *v1alpha1.NodeSet, err error) {
 	result = &v1alpha1.NodeSet{}
 	err = c.client.Put().
-		Namespace(c.ns).
+		Namespace(v1alpha1.TPRNamespace).
 		Resource("nodesets").
 		Name(nodeSet.Name).
 		Body(nodeSet).
@@ -90,7 +90,7 @@ func (c *nodeSets) Update(nodeSet *v1alpha1.NodeSet) (result *v1alpha1.NodeSet, 
 func (c *nodeSets) UpdateStatus(nodeSet *v1alpha1.NodeSet) (result *v1alpha1.NodeSet, err error) {
 	result = &v1alpha1.NodeSet{}
 	err = c.client.Put().
-		Namespace(c.ns).
+		Namespace(v1alpha1.TPRNamespace).
 		Resource("nodesets").
 		Name(nodeSet.Name).
 		SubResource("status").
@@ -103,7 +103,7 @@ func (c *nodeSets) UpdateStatus(nodeSet *v1alpha1.NodeSet) (result *v1alpha1.Nod
 // Delete takes name of the nodeSet and deletes it. Returns an error if one occurs.
 func (c *nodeSets) Delete(name string, options *v1.DeleteOptions) error {
 	return c.client.Delete().
-		Namespace(c.ns).
+		Namespace(v1alpha1.TPRNamespace).
 		Resource("nodesets").
 		Name(name).
 		Body(options).
@@ -114,7 +114,7 @@ func (c *nodeSets) Delete(name string, options *v1.DeleteOptions) error {
 // DeleteCollection deletes a collection of objects.
 func (c *nodeSets) DeleteCollection(options *v1.DeleteOptions, listOptions v1.ListOptions) error {
 	return c.client.Delete().
-		Namespace(c.ns).
+		Namespace(v1alpha1.TPRNamespace).
 		Resource("nodesets").
 		VersionedParams(&listOptions, scheme.ParameterCodec).
 		Body(options).
@@ -126,7 +126,7 @@ func (c *nodeSets) DeleteCollection(options *v1.DeleteOptions, listOptions v1.Li
 func (c *nodeSets) Get(name string, options v1.GetOptions) (result *v1alpha1.NodeSet, err error) {
 	result = &v1alpha1.NodeSet{}
 	err = c.client.Get().
-		Namespace(c.ns).
+		Namespace(v1alpha1.TPRNamespace).
 		Resource("nodesets").
 		Name(name).
 		VersionedParams(&options, scheme.ParameterCodec).
@@ -139,7 +139,7 @@ func (c *nodeSets) Get(name string, options v1.GetOptions) (result *v1alpha1.Nod
 func (c *nodeSets) List(opts v1.ListOptions) (result *v1alpha1.NodeSetList, err error) {
 	result = &v1alpha1.NodeSetList{}
 	err = c.client.Get().
-		Namespace(c.ns).
+		Namespace(v1alpha1.TPRNamespace).
 		Resource("nodesets").
 		VersionedParams(&opts, scheme.ParameterCodec).
 		Do().
@@ -151,7 +151,7 @@ func (c *nodeSets) List(opts v1.ListOptions) (result *v1alpha1.NodeSetList, err 
 func (c *nodeSets) Watch(opts v1.ListOptions) (watch.Interface, error) {
 	opts.Watch = true
 	return c.client.Get().
-		Namespace(c.ns).
+		Namespace(v1alpha1.TPRNamespace).
 		Resource("nodesets").
 		VersionedParams(&opts, scheme.ParameterCodec).
 		Watch()
@@ -161,7 +161,7 @@ func (c *nodeSets) Watch(opts v1.ListOptions) (watch.Interface, error) {
 func (c *nodeSets) Patch(name string, pt types.PatchType, data []byte, subresources ...string) (result *v1alpha1.NodeSet, err error) {
 	result = &v1alpha1.NodeSet{}
 	err = c.client.Patch(pt).
-		Namespace(c.ns).
+		Namespace(v1alpha1.TPRNamespace).
 		Resource("nodesets").
 		SubResource(subresources...).
 		Name(name).

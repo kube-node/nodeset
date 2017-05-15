@@ -28,6 +28,8 @@ const (
 	NodeClassResourceFile      NodeClassResourceType = "File"
 	NodeClassResourceReference NodeClassResourceType = "Reference"
 
+	// Fixed namespace for now to satisfy TPR
+	// TODO: Get rid of namespace when we port to TPR successor
 	TPRNamespace = "default"
 )
 

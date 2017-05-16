@@ -27,6 +27,10 @@ type NodeClassResourceType string
 const (
 	NodeClassResourceFile      NodeClassResourceType = "File"
 	NodeClassResourceReference NodeClassResourceType = "Reference"
+
+	// Fixed namespace for now to satisfy TPR
+	// TODO: Get rid of namespace when we port to TPR successor
+	TPRNamespace = "default"
 )
 
 type NodeClassResource struct {
@@ -58,6 +62,9 @@ type NodeClassResource struct {
 	// +optional
 	Reference *v1.ObjectReference `json:"reference,omitempty"`
 }
+
+// +genclient=true
+// +nonNamespaced=true
 
 // NodeClass describes the parameters for a class of nodes that can be
 // provisioned by the specific controller
@@ -95,6 +102,7 @@ type NodeClassList struct {
 	Items []NodeClass `json:"items"`
 }
 
+// NodeSetSpec is the spec of a node set.
 type NodeSetSpec struct {
 	// NodeSelector is a selector of node labels which a node must have to be in the NodeSet.
 	// More info: http://kubernetes.io/docs/user-guide/node-selection/README
@@ -164,6 +172,7 @@ type NodeSetCondition struct {
 	Message string `json:"message,omitempty"`
 }
 
+// NodeSetStatus is the status of a nodeset
 type NodeSetStatus struct {
 	// Replicas is the number of actual replicas.
 	Replicas int32 `json:"replicas"`
@@ -181,6 +190,9 @@ type NodeSetStatus struct {
 	Conditions []NodeSetCondition `json:"conditions,omitempty"`
 }
 
+// +genclient=true
+
+// NodeSet is a set of nodes of the same class.
 type NodeSet struct {
 	metav1.TypeMeta `json:",inline"`
 

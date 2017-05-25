@@ -30,8 +30,8 @@ func (c *FakeNodesetV1alpha1) NodeClasses() v1alpha1.NodeClassInterface {
 	return &FakeNodeClasses{c}
 }
 
-func (c *FakeNodesetV1alpha1) NodeSets(namespace string) v1alpha1.NodeSetInterface {
-	return &FakeNodeSets{c, namespace}
+func (c *FakeNodesetV1alpha1) NodeSets() v1alpha1.NodeSetInterface {
+	return &FakeNodeSets{c}
 }
 
 // RESTClient returns a RESTClient that is used to communicate

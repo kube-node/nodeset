@@ -38,8 +38,8 @@ func (c *NodesetV1alpha1Client) NodeClasses() NodeClassInterface {
 	return newNodeClasses(c)
 }
 
-func (c *NodesetV1alpha1Client) NodeSets(namespace string) NodeSetInterface {
-	return newNodeSets(c, namespace)
+func (c *NodesetV1alpha1Client) NodeSets() NodeSetInterface {
+	return newNodeSets(c)
 }
 
 // NewForConfig creates a new NodesetV1alpha1Client for the given config.

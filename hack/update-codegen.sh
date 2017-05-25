@@ -35,7 +35,7 @@ ${CLIENT_GEN} --input-base "${PACKAGE_BASE}/pkg" --input "nodeset/v1alpha1" --cl
 
 # Inject namespace into client coz TPR requires a namespace
 find ${CLIENT_PATH} -name '*.go' | xargs sed -i -e '/\tNamespace(c\.ns)\./d' \
-  -e 's/\tResource(/\tNamespace(v1alpha1.TPRNamespace).\n\t\tResource(/g' 
+  -e 's/\tResource(/\tNamespace(v1alpha1.TPRNamespace).\n\t\tResource(/g'  
 
 
 

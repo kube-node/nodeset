@@ -28,7 +28,7 @@ import (
 // NodeSetsGetter has a method to return a NodeSetInterface.
 // A group's client should implement this interface.
 type NodeSetsGetter interface {
-	NodeSets(namespace string) NodeSetInterface
+	NodeSets() NodeSetInterface
 }
 
 // NodeSetInterface has methods to work with NodeSet resources.
@@ -48,14 +48,12 @@ type NodeSetInterface interface {
 // nodeSets implements NodeSetInterface
 type nodeSets struct {
 	client rest.Interface
-	ns     string
 }
 
 // newNodeSets returns a NodeSets
-func newNodeSets(c *NodesetV1alpha1Client, namespace string) *nodeSets {
+func newNodeSets(c *NodesetV1alpha1Client) *nodeSets {
 	return &nodeSets{
 		client: c.RESTClient(),
-		ns:     namespace,
 	}
 }
 

@@ -17,10 +17,10 @@ limitations under the License.
 package v1alpha1
 
 import (
+	"github.com/kube-node/nodeset/pkg/client/clientset_v1alpha1/scheme"
+	v1alpha1 "github.com/kube-node/nodeset/pkg/nodeset/v1alpha1"
 	serializer "k8s.io/apimachinery/pkg/runtime/serializer"
 	rest "k8s.io/client-go/rest"
-	"kube-node/nodeset/pkg/client/clientset_v1alpha1/scheme"
-	v1alpha1 "kube-node/nodeset/pkg/nodeset/v1alpha1"
 )
 
 type NodesetV1alpha1Interface interface {

@@ -18,10 +18,10 @@ package clientset_v1alpha1
 
 import (
 	glog "github.com/golang/glog"
+	nodesetv1alpha1 "github.com/kube-node/nodeset/pkg/client/clientset_v1alpha1/typed/nodeset/v1alpha1"
 	discovery "k8s.io/client-go/discovery"
 	rest "k8s.io/client-go/rest"
 	flowcontrol "k8s.io/client-go/util/flowcontrol"
-	nodesetv1alpha1 "kube-node/nodeset/pkg/client/clientset_v1alpha1/typed/nodeset/v1alpha1"
 )
 
 type Interface interface {

@@ -15,7 +15,7 @@
 # limitations under the License.
 
 KUBE_ROOT=$(dirname "${BASH_SOURCE}")/..
-PACKAGE_BASE=${PACKAGE_BASE:-"kube-node/nodeset"}
+PACKAGE_BASE=${PACKAGE_BASE:-"github.com/kube-node/nodeset"}
 CLIENT_PATH=pkg/client
 CLIENT_NAME=clientset_v1alpha1
 

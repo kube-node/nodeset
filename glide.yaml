@@ -1,4 +1,4 @@
-package: kube-node/nodeset
+package: github.com/kube-node/nodeset
 ignore:
   - net
   - net/rpc

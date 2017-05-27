@@ -37,5 +37,13 @@ ${CLIENT_GEN} --input-base "${PACKAGE_BASE}/pkg" --input "nodeset/v1alpha1" --cl
 find ${CLIENT_PATH} -name '*.go' | xargs sed -i -e '/\tNamespace(c\.ns)\./d' \
   -e 's/\tResource(/\tNamespace(v1alpha1.TPRNamespace).\n\t\tResource(/g'  
 
+# Use json serializer instead of yaml coz we don't have protobuf now
+CLIENTFILE=${CLIENT_PATH}/${CLIENT_NAME}/typed/nodeset/v1alpha1/nodeset_client.go
+sed -i -e 's/import (/import (\n\t"k8s.io\/apimachinery\/pkg\/runtime"/g' \
+  -e 's/config\.APIPath/config.ContentType = runtime.ContentTypeJSON\n\tconfig.APIPath/g' \
+  ${CLIENTFILE}
+
+
+
 
 

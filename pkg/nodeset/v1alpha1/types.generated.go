@@ -1499,6 +1499,7 @@ func (x *NodeSetSpec) CodecEncodeSelf(e *codec1978.Encoder) {
 			yyq2[0] = len(x.NodeSelector) != 0
 			yyq2[1] = x.NodeClass != ""
 			yyq2[2] = x.NodeSetController != ""
+			yyq2[3] = x.Replicas != 0
 			yyq2[4] = x.MaxUnavailable != nil
 			yyq2[5] = x.MaxSurge != nil
 			yyq2[6] = true
@@ -1506,7 +1507,7 @@ func (x *NodeSetSpec) CodecEncodeSelf(e *codec1978.Encoder) {
 			if yyr2 || yy2arr2 {
 				r.EncodeArrayStart(7)
 			} else {
-				yynn2 = 1
+				yynn2 = 0
 				for _, b := range yyq2 {
 					if b {
 						yynn2++
@@ -1600,21 +1601,27 @@ func (x *NodeSetSpec) CodecEncodeSelf(e *codec1978.Encoder) {
 			}
 			if yyr2 || yy2arr2 {
 				z.EncSendContainerState(codecSelfer_containerArrayElem1234)
-				yym13 := z.EncBinary()
-				_ = yym13
-				if false {
+				if yyq2[3] {
+					yym13 := z.EncBinary()
+					_ = yym13
+					if false {
+					} else {
+						r.EncodeInt(int64(x.Replicas))
+					}
 				} else {
-					r.EncodeInt(int64(x.Replicas))
+					r.EncodeInt(0)
 				}
 			} else {
-				z.EncSendContainerState(codecSelfer_containerMapKey1234)
-				r.EncodeString(codecSelferC_UTF81234, string("Replicas"))
-				z.EncSendContainerState(codecSelfer_containerMapValue1234)
-				yym14 := z.EncBinary()
-				_ = yym14
-				if false {
-				} else {
-					r.EncodeInt(int64(x.Replicas))
+				if yyq2[3] {
+					z.EncSendContainerState(codecSelfer_containerMapKey1234)
+					r.EncodeString(codecSelferC_UTF81234, string("replicas"))
+					z.EncSendContainerState(codecSelfer_containerMapValue1234)
+					yym14 := z.EncBinary()
+					_ = yym14
+					if false {
+					} else {
+						r.EncodeInt(int64(x.Replicas))
+					}
 				}
 			}
 			if yyr2 || yy2arr2 {
@@ -1825,7 +1832,7 @@ func (x *NodeSetSpec) codecDecodeSelfFromMap(l int, d *codec1978.Decoder) {
 					*((*string)(yyv8)) = r.DecodeString()
 				}
 			}
-		case "Replicas":
+		case "replicas":
 			if r.TryDecodeAsNil() {
 				x.Replicas = 0
 			} else {

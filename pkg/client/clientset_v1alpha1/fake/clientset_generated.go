@@ -17,14 +17,14 @@ limitations under the License.
 package fake
 
 import (
+	clientset "github.com/kube-node/nodeset/pkg/client/clientset_v1alpha1"
+	nodesetv1alpha1 "github.com/kube-node/nodeset/pkg/client/clientset_v1alpha1/typed/nodeset/v1alpha1"
+	fakenodesetv1alpha1 "github.com/kube-node/nodeset/pkg/client/clientset_v1alpha1/typed/nodeset/v1alpha1/fake"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/discovery"
 	fakediscovery "k8s.io/client-go/discovery/fake"
 	"k8s.io/client-go/testing"
-	clientset "kube-node/nodeset/pkg/client/clientset_v1alpha1"
-	nodesetv1alpha1 "kube-node/nodeset/pkg/client/clientset_v1alpha1/typed/nodeset/v1alpha1"
-	fakenodesetv1alpha1 "kube-node/nodeset/pkg/client/clientset_v1alpha1/typed/nodeset/v1alpha1/fake"
 )
 
 // NewSimpleClientset returns a clientset that will respond with the provided objects.

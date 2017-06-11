@@ -17,13 +17,13 @@ limitations under the License.
 package fake
 
 import (
+	nodeset "github.com/kube-node/nodeset/pkg/nodeset/install"
 	announced "k8s.io/apimachinery/pkg/apimachinery/announced"
 	registered "k8s.io/apimachinery/pkg/apimachinery/registered"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
 	schema "k8s.io/apimachinery/pkg/runtime/schema"
 	serializer "k8s.io/apimachinery/pkg/runtime/serializer"
-	nodeset "kube-node/nodeset/pkg/nodeset/install"
 	os "os"
 )
 

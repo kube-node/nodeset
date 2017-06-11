@@ -120,7 +120,7 @@ type NodeSetSpec struct {
 	NodeSetController string `json:"nodeSetController,omitempty"`
 
 	// Replicas is the number of desired replicas.
-	Replicas int32
+	Replicas int32 `json:"replicas,omitempty"`
 
 	// The maximum number of Nodes that can be unavailable during update
 	// This can be an absolute number (ex. 3) or a percentage of total replicas
@@ -191,6 +191,7 @@ type NodeSetStatus struct {
 }
 
 // +genclient=true
+// +nonNamespaced=true
 
 // NodeSet is a set of nodes of the same class.
 type NodeSet struct {

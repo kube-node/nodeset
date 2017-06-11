@@ -17,9 +17,9 @@ limitations under the License.
 package fake
 
 import (
+	v1alpha1 "github.com/kube-node/nodeset/pkg/client/clientset_v1alpha1/typed/nodeset/v1alpha1"
 	rest "k8s.io/client-go/rest"
 	testing "k8s.io/client-go/testing"
-	v1alpha1 "kube-node/nodeset/pkg/client/clientset_v1alpha1/typed/nodeset/v1alpha1"
 )
 
 type FakeNodesetV1alpha1 struct {
@@ -30,8 +30,8 @@ func (c *FakeNodesetV1alpha1) NodeClasses() v1alpha1.NodeClassInterface {
 	return &FakeNodeClasses{c}
 }
 
-func (c *FakeNodesetV1alpha1) NodeSets(namespace string) v1alpha1.NodeSetInterface {
-	return &FakeNodeSets{c, namespace}
+func (c *FakeNodesetV1alpha1) NodeSets() v1alpha1.NodeSetInterface {
+	return &FakeNodeSets{c}
 }
 
 // RESTClient returns a RESTClient that is used to communicate

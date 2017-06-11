@@ -17,18 +17,18 @@ limitations under the License.
 package v1alpha1
 
 import (
+	scheme "github.com/kube-node/nodeset/pkg/client/clientset_v1alpha1/scheme"
+	v1alpha1 "github.com/kube-node/nodeset/pkg/nodeset/v1alpha1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	types "k8s.io/apimachinery/pkg/types"
 	watch "k8s.io/apimachinery/pkg/watch"
 	rest "k8s.io/client-go/rest"
-	scheme "kube-node/nodeset/pkg/client/clientset_v1alpha1/scheme"
-	v1alpha1 "kube-node/nodeset/pkg/nodeset/v1alpha1"
 )
 
 // NodeSetsGetter has a method to return a NodeSetInterface.
 // A group's client should implement this interface.
 type NodeSetsGetter interface {
-	NodeSets(namespace string) NodeSetInterface
+	NodeSets() NodeSetInterface
 }
 
 // NodeSetInterface has methods to work with NodeSet resources.
@@ -48,14 +48,12 @@ type NodeSetInterface interface {
 // nodeSets implements NodeSetInterface
 type nodeSets struct {
 	client rest.Interface
-	ns     string
 }
 
 // newNodeSets returns a NodeSets
-func newNodeSets(c *NodesetV1alpha1Client, namespace string) *nodeSets {
+func newNodeSets(c *NodesetV1alpha1Client) *nodeSets {
 	return &nodeSets{
 		client: c.RESTClient(),
-		ns:     namespace,
 	}
 }
 

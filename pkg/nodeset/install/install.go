@@ -17,10 +17,10 @@ limitations under the License.
 package install
 
 import (
+	"github.com/kube-node/nodeset/pkg/nodeset/v1alpha1"
 	"k8s.io/apimachinery/pkg/apimachinery/announced"
 	"k8s.io/apimachinery/pkg/apimachinery/registered"
 	"k8s.io/apimachinery/pkg/runtime"
-	"kube-node/nodeset/pkg/nodeset/v1alpha1"
 )
 
 // Install registers the API group and adds types to a scheme

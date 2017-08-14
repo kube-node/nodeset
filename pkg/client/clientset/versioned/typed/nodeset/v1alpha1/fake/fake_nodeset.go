@@ -33,46 +33,9 @@ type FakeNodeSets struct {
 
 var nodesetsResource = schema.GroupVersionResource{Group: "nodeset", Version: "v1alpha1", Resource: "nodesets"}
 
-func (c *FakeNodeSets) Create(nodeSet *v1alpha1.NodeSet) (result *v1alpha1.NodeSet, err error) {
-	obj, err := c.Fake.
-		Invokes(testing.NewRootCreateAction(nodesetsResource, nodeSet), &v1alpha1.NodeSet{})
-	if obj == nil {
-		return nil, err
-	}
-	return obj.(*v1alpha1.NodeSet), err
-}
+var nodesetsKind = schema.GroupVersionKind{Group: "nodeset", Version: "v1alpha1", Kind: "NodeSet"}
 
-func (c *FakeNodeSets) Update(nodeSet *v1alpha1.NodeSet) (result *v1alpha1.NodeSet, err error) {
-	obj, err := c.Fake.
-		Invokes(testing.NewRootUpdateAction(nodesetsResource, nodeSet), &v1alpha1.NodeSet{})
-	if obj == nil {
-		return nil, err
-	}
-	return obj.(*v1alpha1.NodeSet), err
-}
-
-func (c *FakeNodeSets) UpdateStatus(nodeSet *v1alpha1.NodeSet) (*v1alpha1.NodeSet, error) {
-	obj, err := c.Fake.
-		Invokes(testing.NewRootUpdateSubresourceAction(nodesetsResource, "status", nodeSet), &v1alpha1.NodeSet{})
-	if obj == nil {
-		return nil, err
-	}
-	return obj.(*v1alpha1.NodeSet), err
-}
-
-func (c *FakeNodeSets) Delete(name string, options *v1.DeleteOptions) error {
-	_, err := c.Fake.
-		Invokes(testing.NewRootDeleteAction(nodesetsResource, name), &v1alpha1.NodeSet{})
-	return err
-}
-
-func (c *FakeNodeSets) DeleteCollection(options *v1.DeleteOptions, listOptions v1.ListOptions) error {
-	action := testing.NewRootDeleteCollectionAction(nodesetsResource, listOptions)
-
-	_, err := c.Fake.Invokes(action, &v1alpha1.NodeSetList{})
-	return err
-}
-
+// Get takes name of the nodeSet, and returns the corresponding nodeSet object, and an error if there is any.
 func (c *FakeNodeSets) Get(name string, options v1.GetOptions) (result *v1alpha1.NodeSet, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewRootGetAction(nodesetsResource, name), &v1alpha1.NodeSet{})
@@ -82,9 +45,10 @@ func (c *FakeNodeSets) Get(name string, options v1.GetOptions) (result *v1alpha1
 	return obj.(*v1alpha1.NodeSet), err
 }
 
+// List takes label and field selectors, and returns the list of NodeSets that match those selectors.
 func (c *FakeNodeSets) List(opts v1.ListOptions) (result *v1alpha1.NodeSetList, err error) {
 	obj, err := c.Fake.
-		Invokes(testing.NewRootListAction(nodesetsResource, opts), &v1alpha1.NodeSetList{})
+		Invokes(testing.NewRootListAction(nodesetsResource, nodesetsKind, opts), &v1alpha1.NodeSetList{})
 	if obj == nil {
 		return nil, err
 	}
@@ -106,6 +70,52 @@ func (c *FakeNodeSets) List(opts v1.ListOptions) (result *v1alpha1.NodeSetList, 
 func (c *FakeNodeSets) Watch(opts v1.ListOptions) (watch.Interface, error) {
 	return c.Fake.
 		InvokesWatch(testing.NewRootWatchAction(nodesetsResource, opts))
+}
+
+// Create takes the representation of a nodeSet and creates it.  Returns the server's representation of the nodeSet, and an error, if there is any.
+func (c *FakeNodeSets) Create(nodeSet *v1alpha1.NodeSet) (result *v1alpha1.NodeSet, err error) {
+	obj, err := c.Fake.
+		Invokes(testing.NewRootCreateAction(nodesetsResource, nodeSet), &v1alpha1.NodeSet{})
+	if obj == nil {
+		return nil, err
+	}
+	return obj.(*v1alpha1.NodeSet), err
+}
+
+// Update takes the representation of a nodeSet and updates it. Returns the server's representation of the nodeSet, and an error, if there is any.
+func (c *FakeNodeSets) Update(nodeSet *v1alpha1.NodeSet) (result *v1alpha1.NodeSet, err error) {
+	obj, err := c.Fake.
+		Invokes(testing.NewRootUpdateAction(nodesetsResource, nodeSet), &v1alpha1.NodeSet{})
+	if obj == nil {
+		return nil, err
+	}
+	return obj.(*v1alpha1.NodeSet), err
+}
+
+// UpdateStatus was generated because the type contains a Status member.
+// Add a +genclient:noStatus comment above the type to avoid generating UpdateStatus().
+func (c *FakeNodeSets) UpdateStatus(nodeSet *v1alpha1.NodeSet) (*v1alpha1.NodeSet, error) {
+	obj, err := c.Fake.
+		Invokes(testing.NewRootUpdateSubresourceAction(nodesetsResource, "status", nodeSet), &v1alpha1.NodeSet{})
+	if obj == nil {
+		return nil, err
+	}
+	return obj.(*v1alpha1.NodeSet), err
+}
+
+// Delete takes name of the nodeSet and deletes it. Returns an error if one occurs.
+func (c *FakeNodeSets) Delete(name string, options *v1.DeleteOptions) error {
+	_, err := c.Fake.
+		Invokes(testing.NewRootDeleteAction(nodesetsResource, name), &v1alpha1.NodeSet{})
+	return err
+}
+
+// DeleteCollection deletes a collection of objects.
+func (c *FakeNodeSets) DeleteCollection(options *v1.DeleteOptions, listOptions v1.ListOptions) error {
+	action := testing.NewRootDeleteCollectionAction(nodesetsResource, listOptions)
+
+	_, err := c.Fake.Invokes(action, &v1alpha1.NodeSetList{})
+	return err
 }
 
 // Patch applies the patch and returns the patched nodeSet.

@@ -17,8 +17,7 @@ limitations under the License.
 package v1alpha1
 
 import (
-	"k8s.io/apimachinery/pkg/runtime"
-	"github.com/kube-node/nodeset/pkg/client/clientset_v1alpha1/scheme"
+	"github.com/kube-node/nodeset/pkg/client/clientset/versioned/scheme"
 	v1alpha1 "github.com/kube-node/nodeset/pkg/nodeset/v1alpha1"
 	serializer "k8s.io/apimachinery/pkg/runtime/serializer"
 	rest "k8s.io/client-go/rest"
@@ -74,7 +73,6 @@ func New(c rest.Interface) *NodesetV1alpha1Client {
 func setConfigDefaults(config *rest.Config) error {
 	gv := v1alpha1.SchemeGroupVersion
 	config.GroupVersion = &gv
-	config.ContentType = runtime.ContentTypeJSON
 	config.APIPath = "/apis"
 	config.NegotiatedSerializer = serializer.DirectCodecFactory{CodecFactory: scheme.Codecs}
 

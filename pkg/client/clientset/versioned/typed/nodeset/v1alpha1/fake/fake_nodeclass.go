@@ -33,37 +33,9 @@ type FakeNodeClasses struct {
 
 var nodeclassesResource = schema.GroupVersionResource{Group: "nodeset", Version: "v1alpha1", Resource: "nodeclasses"}
 
-func (c *FakeNodeClasses) Create(nodeClass *v1alpha1.NodeClass) (result *v1alpha1.NodeClass, err error) {
-	obj, err := c.Fake.
-		Invokes(testing.NewRootCreateAction(nodeclassesResource, nodeClass), &v1alpha1.NodeClass{})
-	if obj == nil {
-		return nil, err
-	}
-	return obj.(*v1alpha1.NodeClass), err
-}
+var nodeclassesKind = schema.GroupVersionKind{Group: "nodeset", Version: "v1alpha1", Kind: "NodeClass"}
 
-func (c *FakeNodeClasses) Update(nodeClass *v1alpha1.NodeClass) (result *v1alpha1.NodeClass, err error) {
-	obj, err := c.Fake.
-		Invokes(testing.NewRootUpdateAction(nodeclassesResource, nodeClass), &v1alpha1.NodeClass{})
-	if obj == nil {
-		return nil, err
-	}
-	return obj.(*v1alpha1.NodeClass), err
-}
-
-func (c *FakeNodeClasses) Delete(name string, options *v1.DeleteOptions) error {
-	_, err := c.Fake.
-		Invokes(testing.NewRootDeleteAction(nodeclassesResource, name), &v1alpha1.NodeClass{})
-	return err
-}
-
-func (c *FakeNodeClasses) DeleteCollection(options *v1.DeleteOptions, listOptions v1.ListOptions) error {
-	action := testing.NewRootDeleteCollectionAction(nodeclassesResource, listOptions)
-
-	_, err := c.Fake.Invokes(action, &v1alpha1.NodeClassList{})
-	return err
-}
-
+// Get takes name of the nodeClass, and returns the corresponding nodeClass object, and an error if there is any.
 func (c *FakeNodeClasses) Get(name string, options v1.GetOptions) (result *v1alpha1.NodeClass, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewRootGetAction(nodeclassesResource, name), &v1alpha1.NodeClass{})
@@ -73,9 +45,10 @@ func (c *FakeNodeClasses) Get(name string, options v1.GetOptions) (result *v1alp
 	return obj.(*v1alpha1.NodeClass), err
 }
 
+// List takes label and field selectors, and returns the list of NodeClasses that match those selectors.
 func (c *FakeNodeClasses) List(opts v1.ListOptions) (result *v1alpha1.NodeClassList, err error) {
 	obj, err := c.Fake.
-		Invokes(testing.NewRootListAction(nodeclassesResource, opts), &v1alpha1.NodeClassList{})
+		Invokes(testing.NewRootListAction(nodeclassesResource, nodeclassesKind, opts), &v1alpha1.NodeClassList{})
 	if obj == nil {
 		return nil, err
 	}
@@ -97,6 +70,41 @@ func (c *FakeNodeClasses) List(opts v1.ListOptions) (result *v1alpha1.NodeClassL
 func (c *FakeNodeClasses) Watch(opts v1.ListOptions) (watch.Interface, error) {
 	return c.Fake.
 		InvokesWatch(testing.NewRootWatchAction(nodeclassesResource, opts))
+}
+
+// Create takes the representation of a nodeClass and creates it.  Returns the server's representation of the nodeClass, and an error, if there is any.
+func (c *FakeNodeClasses) Create(nodeClass *v1alpha1.NodeClass) (result *v1alpha1.NodeClass, err error) {
+	obj, err := c.Fake.
+		Invokes(testing.NewRootCreateAction(nodeclassesResource, nodeClass), &v1alpha1.NodeClass{})
+	if obj == nil {
+		return nil, err
+	}
+	return obj.(*v1alpha1.NodeClass), err
+}
+
+// Update takes the representation of a nodeClass and updates it. Returns the server's representation of the nodeClass, and an error, if there is any.
+func (c *FakeNodeClasses) Update(nodeClass *v1alpha1.NodeClass) (result *v1alpha1.NodeClass, err error) {
+	obj, err := c.Fake.
+		Invokes(testing.NewRootUpdateAction(nodeclassesResource, nodeClass), &v1alpha1.NodeClass{})
+	if obj == nil {
+		return nil, err
+	}
+	return obj.(*v1alpha1.NodeClass), err
+}
+
+// Delete takes name of the nodeClass and deletes it. Returns an error if one occurs.
+func (c *FakeNodeClasses) Delete(name string, options *v1.DeleteOptions) error {
+	_, err := c.Fake.
+		Invokes(testing.NewRootDeleteAction(nodeclassesResource, name), &v1alpha1.NodeClass{})
+	return err
+}
+
+// DeleteCollection deletes a collection of objects.
+func (c *FakeNodeClasses) DeleteCollection(options *v1.DeleteOptions, listOptions v1.ListOptions) error {
+	action := testing.NewRootDeleteCollectionAction(nodeclassesResource, listOptions)
+
+	_, err := c.Fake.Invokes(action, &v1alpha1.NodeClassList{})
+	return err
 }
 
 // Patch applies the patch and returns the patched nodeClass.

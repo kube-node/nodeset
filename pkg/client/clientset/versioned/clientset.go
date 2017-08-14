@@ -14,11 +14,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package clientset_v1alpha1
+package versioned
 
 import (
 	glog "github.com/golang/glog"
-	nodesetv1alpha1 "github.com/kube-node/nodeset/pkg/client/clientset_v1alpha1/typed/nodeset/v1alpha1"
+	nodesetv1alpha1 "github.com/kube-node/nodeset/pkg/client/clientset/versioned/typed/nodeset/v1alpha1"
 	discovery "k8s.io/client-go/discovery"
 	rest "k8s.io/client-go/rest"
 	flowcontrol "k8s.io/client-go/util/flowcontrol"
@@ -35,24 +35,18 @@ type Interface interface {
 // version included in a Clientset.
 type Clientset struct {
 	*discovery.DiscoveryClient
-	*nodesetv1alpha1.NodesetV1alpha1Client
+	nodesetV1alpha1 *nodesetv1alpha1.NodesetV1alpha1Client
 }
 
 // NodesetV1alpha1 retrieves the NodesetV1alpha1Client
 func (c *Clientset) NodesetV1alpha1() nodesetv1alpha1.NodesetV1alpha1Interface {
-	if c == nil {
-		return nil
-	}
-	return c.NodesetV1alpha1Client
+	return c.nodesetV1alpha1
 }
 
 // Deprecated: Nodeset retrieves the default version of NodesetClient.
 // Please explicitly pick a version.
 func (c *Clientset) Nodeset() nodesetv1alpha1.NodesetV1alpha1Interface {
-	if c == nil {
-		return nil
-	}
-	return c.NodesetV1alpha1Client
+	return c.nodesetV1alpha1
 }
 
 // Discovery retrieves the DiscoveryClient
@@ -71,7 +65,7 @@ func NewForConfig(c *rest.Config) (*Clientset, error) {
 	}
 	var cs Clientset
 	var err error
-	cs.NodesetV1alpha1Client, err = nodesetv1alpha1.NewForConfig(&configShallowCopy)
+	cs.nodesetV1alpha1, err = nodesetv1alpha1.NewForConfig(&configShallowCopy)
 	if err != nil {
 		return nil, err
 	}
@@ -88,7 +82,7 @@ func NewForConfig(c *rest.Config) (*Clientset, error) {
 // panics if there is an error in the config.
 func NewForConfigOrDie(c *rest.Config) *Clientset {
 	var cs Clientset
-	cs.NodesetV1alpha1Client = nodesetv1alpha1.NewForConfigOrDie(c)
+	cs.nodesetV1alpha1 = nodesetv1alpha1.NewForConfigOrDie(c)
 
 	cs.DiscoveryClient = discovery.NewDiscoveryClientForConfigOrDie(c)
 	return &cs
@@ -97,7 +91,7 @@ func NewForConfigOrDie(c *rest.Config) *Clientset {
 // New creates a new Clientset for the given RESTClient.
 func New(c rest.Interface) *Clientset {
 	var cs Clientset
-	cs.NodesetV1alpha1Client = nodesetv1alpha1.New(c)
+	cs.nodesetV1alpha1 = nodesetv1alpha1.New(c)
 
 	cs.DiscoveryClient = discovery.NewDiscoveryClient(c)
 	return &cs

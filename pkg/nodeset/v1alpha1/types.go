@@ -16,10 +16,10 @@ limitations under the License.
 package v1alpha1
 
 import (
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/intstr"
-	"k8s.io/client-go/pkg/api/v1"
 )
 
 type NodeClassResourceType string
@@ -60,11 +60,12 @@ type NodeClassResource struct {
 	// provisioning the node
 	// Ex. a secret ref to be used as ssh credentials.
 	// +optional
-	Reference *v1.ObjectReference `json:"reference,omitempty"`
+	Reference *corev1.ObjectReference `json:"reference,omitempty"`
 }
 
-// +genclient=true
-// +nonNamespaced=true
+// +genclient
+// +genclient:nonNamespaced
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // NodeClass describes the parameters for a class of nodes that can be
 // provisioned by the specific controller
@@ -89,6 +90,8 @@ type NodeClass struct {
 	// +optional
 	Resources []NodeClassResource `json:"resources,omitempty"`
 }
+
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // NodeClassList is a collection of node classes.
 type NodeClassList struct {
@@ -157,7 +160,7 @@ type NodeSetCondition struct {
 	Type NodeSetConditionType `json:"type"`
 
 	// Status of the condition, one of True, False, Unknown.
-	Status v1.ConditionStatus `json:"status"`
+	Status corev1.ConditionStatus `json:"status"`
 
 	// The last time the condition transitioned from one status to another.
 	// +optional
@@ -190,8 +193,9 @@ type NodeSetStatus struct {
 	Conditions []NodeSetCondition `json:"conditions,omitempty"`
 }
 
-// +genclient=true
-// +nonNamespaced=true
+// +genclient
+// +genclient:nonNamespaced
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // NodeSet is a set of nodes of the same class.
 type NodeSet struct {
@@ -213,6 +217,8 @@ type NodeSet struct {
 	// +optional
 	Status NodeSetStatus `json:"status,omitempty"`
 }
+
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // NodeSetList is a collection of nodesets.
 type NodeSetList struct {

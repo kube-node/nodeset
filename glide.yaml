@@ -1,21 +1,14 @@
 package: github.com/kube-node/nodeset
-ignore:
-  - net
-  - net/rpc
-  - net/url
-  - net/http
-  - net/textproto
 import:
 - package: k8s.io/apimachinery
-  version: release-1.6
+  repo: https://github.com/sttts/apimachinery
 - package: k8s.io/client-go
-  version: 3.0.0-beta.0
-- package: github.com/ugorji/go/codec/codecgen
-- package: github.com/golang/glog
-- package: k8s.io/gengo
-- package: k8s.io/kubernetes
-  version: v1.6.2
-  subpackages:
-    - cmd/libs/go2idl/client-gen
-    - cmd/libs/go2idl/defaulter-gen
-
+  repo: https://github.com/sttts/client-go
+  version: release-5.0
+- package: k8s.io/api
+  repo: https://github.com/sttts/api
+- package: k8s.io/apiserver
+  repo: https://github.com/sttts/apiserver
+- package: k8s.io/code-generator
+  repo: https://github.com/sttts/code-generator
+  version: sttts-codegen-scripts

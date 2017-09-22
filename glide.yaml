@@ -8,3 +8,5 @@ import:
   version: 9e661e9308f078838e266cca1c673922088c0ea4
 - package: k8s.io/apimachinery
   version: release-1.8
+
+- package: google.golang.org/api/compute/v1

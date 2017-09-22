@@ -25,3 +25,5 @@ _testmain.go
 *.swp
 
 vendor
+.idea
+_output

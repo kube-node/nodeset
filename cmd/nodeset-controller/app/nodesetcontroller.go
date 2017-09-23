@@ -26,7 +26,6 @@ import (
 	"k8s.io/client-go/kubernetes"
 	restclient "k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
-	"k8s.io/client-go/tools/record"
 
 	"github.com/kube-node/nodeset/cmd/nodeset-controller/app/options"
 	nodesetclientset "github.com/kube-node/nodeset/pkg/client/clientset/versioned"
@@ -68,46 +67,26 @@ func Run(s *options.Options, stopCh <-chan struct{}) error {
 		glog.Fatalf("Invalid API configuration: %v", err)
 	}
 
-	/*
-		eventBroadcaster := record.NewBroadcaster()
-		eventBroadcaster.StartLogging(glog.Infof)
-		eventBroadcaster.StartRecordingToSink(&v1core.EventSinkImpl{Interface: v1core.New(kubeClient.CoreV1().RESTClient()).Events("")})
-		recorder := eventBroadcaster.NewRecorder(scheme.Scheme, clientv1.EventSource{Component: "controller-manager"})
-	*/
-
 	nodesetInformers := nodesetinformers.NewSharedInformerFactory(nodesetClient, ResyncPeriod(s)())
-	nodesetInformers.Start(stopCh)
-
+	coreInformers := coreinformers.NewSharedInformerFactory(kubeClient, ResyncPeriod(s)())
 	glog.V(1).Infof("Starting NodeSet controller with %s backend", s.BackendName)
-
 	switch s.BackendName {
 	case "node":
-		coreInformers := coreinformers.NewSharedInformerFactory(kubeClient, ResyncPeriod(s)())
-		coreInformers.Start(stopCh)
-
-		nodesetController := nodenodeset.New(s.ControllerName, nodesetInformers.Nodeset().V1alpha1().NodeSets(), nodesetInformers.Nodeset().V1alpha1().NodeClasses(), coreInformers.Core().V1().Nodes())
-		nodesetController.Run(2, stopCh)
+		nodesetController, err := nodenodeset.New(s.ControllerName, kubeClient, nodesetClient, nodesetInformers.Nodeset().V1alpha1().NodeSets(), nodesetInformers.Nodeset().V1alpha1().NodeClasses(), coreInformers.Core().V1().Nodes())
+		if err != nil {
+			return err
+		}
+		go nodesetController.Run(2, stopCh)
 	case "gke":
 		nodesetController, err := gkenodeset.New(s.ControllerName, s.GKEClusterName, nodesetClient, nodesetInformers.Nodeset().V1alpha1().NodeSets())
 		if err != nil {
 			return err
 		}
-		nodesetController.Run(2, stopCh)
+		go nodesetController.Run(2, stopCh)
 	}
 
+	go nodesetInformers.Start(stopCh)
+	go coreInformers.Start(stopCh)
+	<-stopCh
 	return nil
-}
-
-type ControllerContext struct {
-	// InformerFactory gives access to informers for the controller.
-	InformerFactory nodesetinformers.SharedInformerFactory
-
-	// corev1 event recorder
-	eventRecorder record.EventRecorder
-
-	// Options provides access to init options for a given controller
-	Options options.Options
-
-	// Stop channel
-	StopCh <-chan struct{}
 }

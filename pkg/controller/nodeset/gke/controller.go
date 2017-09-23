@@ -43,7 +43,7 @@ import (
 
 const (
 	nodeAutoprovisioningPrefix    = "nodeautoprovisioning"
-	gceUrlSchema                  = "https"
+	gceURLSchema                  = "https"
 	gceDomainSufix                = "googleapis.com/compute/v1/projects/"
 	gkeControllerAnnotationPrefix = "gke.nodeset-controller.nodeset.k8s.io/"
 	nodePoolAnnotationKey         = gkeControllerAnnotationPrefix + "node-pool"
@@ -52,6 +52,7 @@ const (
 	nodeSetFinalizer              = "gke.nodeset-controller.nodeset.k8s.io"
 )
 
+// Controller is a nodeset controller for GKE node pools
 type Controller struct {
 	nodesetClientset nodesetclientset.Interface
 	nodesetLister    nodesetlisters.NodeSetLister
@@ -68,12 +69,16 @@ type Controller struct {
 	queue workqueue.RateLimitingInterface
 }
 
+// New returns a instance of the GKE nodeset controller
 func New(name string, clusterName string, client nodesetclientset.Interface, nodesets nodesetinformers.NodeSetInformer) (*Controller, error) {
 	// index nodesets by uids
 	// TODO: move outside of New
-	nodesets.Informer().AddIndexers(map[string]cache.IndexFunc{
+	err := nodesets.Informer().AddIndexers(map[string]cache.IndexFunc{
 		UIDIndex: MetaUIDIndexFunc,
 	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to add uid indexer: %v", err)
+	}
 
 	c := &Controller{
 		nodesetLister:   nodesets.Lister(),
@@ -110,7 +115,6 @@ func New(name string, clusterName string, client nodesetclientset.Interface, nod
 	})
 
 	// get GKE client
-	var err error
 	c.gke, c.gce, c.cluster, err = NewGKEService(clusterName)
 	if err != nil {
 		return nil, err
@@ -119,6 +123,7 @@ func New(name string, clusterName string, client nodesetclientset.Interface, nod
 	return c, nil
 }
 
+// Run starts the control loop. This method is blocking.
 func (c *Controller) Run(threadiness int, stopCh <-chan struct{}) {
 	// don't let panics crash the process
 	defer utilruntime.HandleCrash()
@@ -285,7 +290,7 @@ func (c *Controller) reconsileNodeSets() bool {
 		// format is
 		// "https://www.googleapis.com/compute/v1/projects/mwielgus-proj/zones/europe-west1-b/instanceGroupManagers/gke-cluster-1-default-pool-ba78a787-grp"
 		for _, url := range pool.InstanceGroupUrls {
-			project, zone, name, err := parseGceUrl(url, "instanceGroupManagers")
+			project, zone, name, err := parseGceURL(url, "instanceGroupManagers")
 			if err != nil {
 				glog.Warningf("parse error of %s/%s/%s InstanceGroupManager url %q", project, zone, name, url)
 				return true
@@ -429,12 +434,12 @@ func (c *Controller) updateNodeSetWithRetries(retries int, ns *v1alpha1.NodeSet,
 	return nil, fmt.Errorf("giving up updating NodeSet %q after %d retries", nsName, initialRetries)
 }
 
-func parseGceUrl(url, expectedResource string) (project string, zone string, name string, err error) {
+func parseGceURL(url, expectedResource string) (project string, zone string, name string, err error) {
 	errMsg := fmt.Errorf("Wrong url: expected format https://content.googleapis.com/compute/v1/projects/<project-id>/zones/<zone>/%s/<name>, got %s", expectedResource, url)
 	if !strings.Contains(url, gceDomainSufix) {
 		return "", "", "", errMsg
 	}
-	if !strings.HasPrefix(url, gceUrlSchema) {
+	if !strings.HasPrefix(url, gceURLSchema) {
 		return "", "", "", errMsg
 	}
 	splitted := strings.Split(strings.Split(url, gceDomainSufix)[1], "/")
@@ -451,7 +456,8 @@ func parseGceUrl(url, expectedResource string) (project string, zone string, nam
 }
 
 const (
-	UIDIndex string = "uid"
+	// UIDIndex is the name for the uid index function
+	UIDIndex = "uid"
 )
 
 // MetaUIDIndexFunc indexes by uid.

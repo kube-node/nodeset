@@ -29,10 +29,12 @@ import (
 	gke "google.golang.org/api/container/v1"
 )
 
+// Cluster contains information about a GKE cluster
 type Cluster struct {
 	Project, Zone, Name string
 }
 
+// NewGKEService returns a client to interact with a GKE cluster
 func NewGKEService(clusterName string) (*gke.Service, *gce.Service, Cluster, error) {
 	// Create Google Compute Engine token.
 	var err error
@@ -43,14 +45,14 @@ func NewGKEService(clusterName string) (*gke.Service, *gce.Service, Cluster, err
 			return nil, nil, Cluster{}, err
 		}
 	}
-	var projectId, zone string
-	if len(projectId) == 0 || len(zone) == 0 {
-		projectId, zone, err = getProjectAndZone()
+	var projectID, zone string
+	if len(projectID) == 0 || len(zone) == 0 {
+		projectID, zone, err = getProjectAndZone()
 		if err != nil {
 			return nil, nil, Cluster{}, err
 		}
 	}
-	glog.V(1).Infof("GCE projectId=%s Zone=%s", projectId, zone)
+	glog.V(1).Infof("GCE projectID=%s Zone=%s", projectID, zone)
 
 	// Create Google Compute Engine service.
 	client := oauth2.NewClient(oauth2.NoContext, tokenSource)
@@ -65,7 +67,7 @@ func NewGKEService(clusterName string) (*gke.Service, *gce.Service, Cluster, err
 		return nil, nil, Cluster{}, err
 	}
 
-	return gkeService, gceService, Cluster{projectId, zone, clusterName}, nil
+	return gkeService, gceService, Cluster{projectID, zone, clusterName}, nil
 }
 
 /*
@@ -89,7 +91,7 @@ func (m *gceManagerImpl) fetchAllNodePools() error {
 		// format is
 		// "https://www.googleapis.com/compute/v1/projects/mwielgus-proj/zones/europe-west1-b/instanceGroupManagers/gke-cluster-1-default-pool-ba78a787-grp"
 		for _, igurl := range nodePool.InstanceGroupUrls {
-			Project, Zone, name, err := parseGceUrl(igurl, "instanceGroupManagers")
+			Project, Zone, name, err := parseGceURL(igurl, "instanceGroupManagers")
 			if err != nil {
 				return err
 			}

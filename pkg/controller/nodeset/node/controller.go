@@ -17,6 +17,7 @@ limitations under the License.
 package node
 
 import (
+	"encoding/json"
 	"fmt"
 	"time"
 
@@ -26,18 +27,27 @@ import (
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/apimachinery/pkg/util/jsonmergepatch"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/apimachinery/pkg/util/wait"
 	coreinformers "k8s.io/client-go/informers/core/v1"
+	"k8s.io/client-go/kubernetes"
 	corelisters "k8s.io/client-go/listers/core/v1"
 	"k8s.io/client-go/tools/cache"
 	"k8s.io/client-go/util/workqueue"
 
+	nodesetclientset "github.com/kube-node/nodeset/pkg/client/clientset/versioned"
 	nodesetinformers "github.com/kube-node/nodeset/pkg/client/informers/externalversions/nodeset/v1alpha1"
 	nodesetlisters "github.com/kube-node/nodeset/pkg/client/listers/nodeset/v1alpha1"
+	"github.com/kube-node/nodeset/pkg/nodeset/v1alpha1"
 )
 
+// Controller is a generic implementation of a nodeset controller which creates node resources
 type Controller struct {
+	kubeClient    kubernetes.Interface
+	nodesetClient nodesetclientset.Interface
+
 	nodesetLister  nodesetlisters.NodeSetLister
 	nodesetIndexer cache.Indexer
 	nodesetSynced  cache.InformerSynced
@@ -57,19 +67,29 @@ type Controller struct {
 	queue workqueue.RateLimitingInterface
 }
 
-func New(name string, nodesets nodesetinformers.NodeSetInformer, nodeclasses nodesetinformers.NodeClassInformer, nodes coreinformers.NodeInformer) *Controller {
+// New returns a instance of the node nodeset controller
+func New(name string, kubeClient kubernetes.Interface, nodesetClient nodesetclientset.Interface, nodesets nodesetinformers.NodeSetInformer, nodeclasses nodesetinformers.NodeClassInformer, nodes coreinformers.NodeInformer) (*Controller, error) {
 	// index nodesets by uids
 	// TODO: move outside of New
-	nodesets.Informer().AddIndexers(map[string]cache.IndexFunc{
+	err := nodesets.Informer().AddIndexers(map[string]cache.IndexFunc{
 		UIDIndex: MetaUIDIndexFunc,
 	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to add uid indexer: %v", err)
+	}
 
 	// index nodes by owner uid
-	nodes.Informer().AddIndexers(map[string]cache.IndexFunc{
+	err = nodes.Informer().AddIndexers(map[string]cache.IndexFunc{
 		OwnerUIDIndex: MetaOwnerUIDIndexFunc,
 	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to add owner uid indexer: %v", err)
+	}
 
 	c := &Controller{
+		kubeClient:    kubeClient,
+		nodesetClient: nodesetClient,
+
 		nodesetLister:  nodesets.Lister(),
 		nodesetIndexer: nodesets.Informer().GetIndexer(),
 		nodesetSynced:  nodesets.Informer().HasSynced,
@@ -86,7 +106,6 @@ func New(name string, nodesets nodesetinformers.NodeSetInformer, nodeclasses nod
 
 		queue: workqueue.NewNamedRateLimitingQueue(workqueue.DefaultControllerRateLimiter(), "nodeset"),
 	}
-
 	// register event handlers to fill the queue with nodeset creations, updates and deletions
 	nodesets.Informer().AddEventHandler(cache.ResourceEventHandlerFuncs{
 		AddFunc: func(obj interface{}) {
@@ -122,7 +141,7 @@ func New(name string, nodesets nodesetinformers.NodeSetInformer, nodeclasses nod
 			return
 		}
 
-		for set := range objs {
+		for _, set := range objs {
 			key, err := cache.MetaNamespaceKeyFunc(set)
 			if err == nil {
 				c.queue.Add(key)
@@ -145,28 +164,34 @@ func New(name string, nodesets nodesetinformers.NodeSetInformer, nodeclasses nod
 			queueOwner(node)
 		},
 		DeleteFunc: func(obj interface{}) {
-			key, err := cache.DeletionHandlingMetaNamespaceKeyFunc(obj)
-			if err == nil {
-				c.queue.Add(key)
-			}
-			node, err := c.nodeLister.Get(key)
-			if err != nil {
-				return
+			node, ok := obj.(*corev1.Node)
+			if !ok {
+				tombstone, ok := obj.(cache.DeletedFinalStateUnknown)
+				if !ok {
+					utilruntime.HandleError(fmt.Errorf("couldn't get object from tombstone %+v", obj))
+					return
+				}
+				node, ok = tombstone.Obj.(*corev1.Node)
+				if !ok {
+					utilruntime.HandleError(fmt.Errorf("tombstone contained object that is not a node %#v", obj))
+					return
+				}
 			}
 			queueOwner(node)
 		},
 	})
 
-	return c
+	return c, nil
 }
 
+// Run starts the control loop. This method is blocking.
 func (c *Controller) Run(threadiness int, stopCh <-chan struct{}) {
 	// don't let panics crash the process
 	defer utilruntime.HandleCrash()
 	// make sure the work queue is shutdown which will trigger workers to end
 	defer c.queue.ShutDown()
 
-	glog.Infof("Starting <NAME> controller")
+	glog.Infof("Starting controller")
 
 	// wait for your secondary caches to fill before starting your work
 	if !cache.WaitForCacheSync(stopCh, c.nodesetSynced, c.nodeSynced, c.nodeClassSynced) {
@@ -245,21 +270,55 @@ func (c *Controller) syncHandler(key string) error {
 	if nodeset.Spec.NodeSetController != c.name {
 		return nil
 	}
-
-	glog.Infof("NodeSet seen %q", nodeset.Name)
-
-	objs, err := c.nodeIndexer.ByIndex(OwnerUIDIndex, string(nodeset.GetUID()))
+	originalData, err := json.Marshal(nodeset)
 	if err != nil {
-		return fmt.Errorf("failed to get nodes for NodeSet %q: %v", nodeset.Name, err)
+		return fmt.Errorf("failed to marshal nodeset %s: %v", key, err)
 	}
-	glog.Infof("Found %d nodes for NodeSet %q.", len(objs), nodeset.Name)
 
+	changedNodeset, err := c.syncNodeSet(nodeset)
+	if err != nil {
+		return err
+	}
+
+	if changedNodeset != nil {
+		if err = c.updateNodeSet(originalData, nodeset); err != nil {
+			return err
+		}
+	}
+
+	c.queue.AddAfter(nodeset.Name, 5*time.Second)
 	return nil
 }
 
+func (c *Controller) updateNodeSet(originalData []byte, nodeset *v1alpha1.NodeSet) error {
+	modifiedData, err := json.Marshal(nodeset)
+	if err != nil {
+		return err
+	}
+
+	patchData, err := jsonmergepatch.CreateThreeWayJSONMergePatch(nil, modifiedData, originalData)
+	if err != nil {
+		return err
+	}
+	//Avoid empty patch calls
+	if string(patchData) == "{}" {
+		return nil
+	}
+
+	_, err = c.nodesetClient.NodesetV1alpha1().NodeSets().Patch(nodeset.Name, types.MergePatchType, patchData)
+	return err
+}
+
 const (
-	UIDIndex      string = "uid"
-	OwnerUIDIndex string = "owner-uid"
+	kubeHostnameLabelKey    = "kubernetes.io/hostname"
+	mergedNodeSetNamePrefix = "inherited-from-"
+)
+
+const (
+	// UIDIndex is the name for the uid index function
+	UIDIndex = "uid"
+	// OwnerUIDIndex is the name for the owner uid index function
+	OwnerUIDIndex = "owner-uid"
 )
 
 // MetaUIDIndexFunc indexes by uid.
@@ -271,7 +330,7 @@ func MetaUIDIndexFunc(obj interface{}) ([]string, error) {
 	return []string{string(meta.GetUID())}, nil
 }
 
-// MetOwneraUIDIndexFunc indexes by uid.
+// MetaOwnerUIDIndexFunc indexes by owner uid.
 func MetaOwnerUIDIndexFunc(obj interface{}) ([]string, error) {
 	node, ok := obj.(*corev1.Node)
 	if !ok {

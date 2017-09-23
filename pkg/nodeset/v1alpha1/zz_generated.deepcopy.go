@@ -78,6 +78,13 @@ func (in *NodeClass) DeepCopyInto(out *NodeClass) {
 	*out = *in
 	out.TypeMeta = in.TypeMeta
 	in.ObjectMeta.DeepCopyInto(&out.ObjectMeta)
+	if in.NodeLabels != nil {
+		in, out := &in.NodeLabels, &out.NodeLabels
+		*out = make(map[string]string, len(*in))
+		for key, val := range *in {
+			(*out)[key] = val
+		}
+	}
 	in.Config.DeepCopyInto(&out.Config)
 	if in.Resources != nil {
 		in, out := &in.Resources, &out.Resources

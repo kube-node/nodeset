@@ -1,26 +1,19 @@
-# Golang CircleCI 2.0 configuration file
-#
-# Check https://circleci.com/docs/2.0/language-go/ for more details
 version: 2
 jobs:
   build:
     docker:
-      # specify the version
       - image: circleci/golang:1.8
-
-      # Specify service dependencies here if necessary
-      # CircleCI maintains a library of pre-built images
-      # documented at https://circleci.com/docs/2.0/circleci-images/
-      # - image: circleci/postgres:9.4
-
-    #### TEMPLATE_NOTE: go expects specific checkout path representing url
-    #### expecting it in the form of
-    ####   /go/src/github.com/circleci/go-tool
-    ####   /go/src/bitbucket.org/circleci/go-tool
     working_directory: /go/src/github.com/kube-node/nodeset
     steps:
       - checkout
-      # specify any bash command here prefixed with `run: `
+      # Test with glide
       - run: go get -u github.com/Masterminds/glide
       - run: glide install --strip-vendor
       - run: go test -v $(go list ./... | grep -v /vendor/)
+      - run: go vet $(go list ./... | grep -v /vendor/ )
+      # Test with dep
+      - run: rm -rf vendor
+      - run: go get -u github.com/golang/dep/cmd/dep
+      - run: dep ensure
+      - run: go test -v $(go list ./... | grep -v /vendor/)
+      - run: go vet $(go list ./... | grep -v /vendor/ )

@@ -1,0 +1,19 @@
+required = ["k8s.io/code-generator/cmd/client-gen"]
+
+[[constraint]]
+  name = "github.com/golang/glog"
+
+[[constraint]]
+  name = "k8s.io/api"
+
+[[constraint]]
+  name = "k8s.io/apimachinery"
+
+[[constraint]]
+  branch = "release-5.0"
+  name = "k8s.io/client-go"
+
+[[constraint]]
+  name = "k8s.io/code-generator"
+  branch = "sttts-codegen-scripts"
+  source = "github.com/sttts/code-generator"

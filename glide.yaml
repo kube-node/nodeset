@@ -5,3 +5,4 @@ import:
 - package: k8s.io/code-generator
   repo: https://github.com/sttts/code-generator
   version: sttts-codegen-scripts
+- package: k8s.io/gengo

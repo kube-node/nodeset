@@ -27,6 +27,9 @@ type NodeClassResourceType string
 const (
 	NodeClassResourceFile      NodeClassResourceType = "File"
 	NodeClassResourceReference NodeClassResourceType = "Reference"
+
+	NodeClassResourcePlural = "nodeclasses"
+	NodeSetResourcePlural   = "nodesets"
 )
 
 type NodeClassResource struct {

@@ -1,14 +1,24 @@
 # NodeSet Controller
 
-## GKE
-
-### Deployment
+## Building
 
 Build the binary and upload:
 
 ```shell
 $ make REPO=<ORG>/nodeset-controller
 ```
+
+## Deployment
+
+### Node
+
+Create the ReplicaSet:
+
+``` shell
+$ kubectl create -f cmd/nodeset-controller/node-replicaset.yaml
+```
+
+### GKE
 
 Create a service account in Google Cloud:
 
@@ -28,5 +38,5 @@ $ kubectl create secret generic nodeset-gcloud-service-account --from-file=priva
 Create the ReplicaSet:
 
 ``` shell
-$ kubectl create -f cmd/nodeset-controller/replicaset.yaml
+$ kubectl create -f cmd/nodeset-controller/gke-replicaset.yaml
 ```

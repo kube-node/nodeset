@@ -17,7 +17,8 @@ spec:
         command:
         - /nodeset-controller
         args:
-        - --backend=gke
+        - --backend=node
+        - --controller-name=nodeset-controller-node
         - --logtostderr
         - --v=5
         imagePullPolicy: Always
@@ -25,9 +26,3 @@ spec:
           requests:
             cpu: 100m
             memory: 300Mi
-        env:
-        - name: GOOGLE_APPLICATION_CREDENTIALS
-          valueFrom:
-            secretKeyRef:
-              name: nodeset-gcloud-service-account
-              key: private_key

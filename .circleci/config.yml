@@ -1,19 +1,37 @@
 version: 2
 jobs:
-  build:
+  build-dep:
     docker:
-      - image: circleci/golang:1.8
+      - image: circleci/golang:1.9
+    working_directory: /go/src/github.com/kube-node/nodeset
+    steps:
+      - checkout
+      # Test with dep
+      - run: go get -u github.com/golang/dep/cmd/dep
+      - run: dep ensure -vendor-only
+      - run: go test ./...
+      - run: go vet ./...
+      - save_cache:
+          key: vendor-{{ checksum "Gopkg.lock" }}
+          paths:
+            - /go/src/github.com/kube-node/nodeset/vendor
+  build-glide:
+    docker:
+      - image: circleci/golang:1.9
     working_directory: /go/src/github.com/kube-node/nodeset
     steps:
       - checkout
       # Test with glide
       - run: go get -u github.com/Masterminds/glide
       - run: glide install --strip-vendor
-      - run: go test -v $(go list ./... | grep -v /vendor/)
-      - run: go vet $(go list ./... | grep -v /vendor/ )
-      # Test with dep
-      - run: rm -rf vendor
-      - run: go get -u github.com/golang/dep/cmd/dep
-      - run: dep ensure
-      - run: go test -v $(go list ./... | grep -v /vendor/)
-      - run: go vet $(go list ./... | grep -v /vendor/ )
+      - run: go test ./...
+      - run: go vet ./...
+  validate-codegen:
+    docker:
+      - image: circleci/golang:1.9
+    working_directory: /go/src/github.com/kube-node/nodeset
+    steps:
+      - checkout
+      - restore_cache:
+          key: vendor-{{ checksum "Gopkg.lock" }}
+      - run: ./hack/verify-codegen.sh

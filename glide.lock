@@ -1,5 +1,5 @@
-hash: 053691c0bc3215259590ee10710715b04a9b6253ddbb97e2944dfa2e5f46a344
-updated: 2017-09-24T08:39:27.177527821+02:00
+hash: c3b1c1bcbb27ce6cd21d0ea43d2c0cf4f3afb522d9759fd66bbf64e5e1b69618
+updated: 2017-10-27T16:35:35.135524625+02:00
 imports:
 - name: github.com/davecgh/go-spew
   version: 782f4967f2dc4564575ca782fe2d04090b5faca8
@@ -100,7 +100,7 @@ imports:
 - name: gopkg.in/yaml.v2
   version: 53feefa2559fb8dfa8d81baad31be332c97d6c77
 - name: k8s.io/api
-  version: fe29995db37613b9c5b2a647544cf627bfa8d299
+  version: 6c6dac0277229b9e9578c5ca3f74a4345d35cdc2
   subpackages:
   - admissionregistration/v1alpha1
   - apps/v1beta1
@@ -128,7 +128,7 @@ imports:
   - storage/v1
   - storage/v1beta1
 - name: k8s.io/apimachinery
-  version: 9d38e20d609d27e00d4ec18f7b9db67105a2bde0
+  version: 019ae5ada31de202164b118aee88ee2d14075c31
   subpackages:
   - pkg/api/equality
   - pkg/api/errors
@@ -161,27 +161,20 @@ imports:
   - pkg/util/diff
   - pkg/util/errors
   - pkg/util/framer
-  - pkg/util/httpstream
-  - pkg/util/httpstream/spdy
   - pkg/util/intstr
   - pkg/util/json
-  - pkg/util/mergepatch
   - pkg/util/net
-  - pkg/util/remotecommand
   - pkg/util/runtime
   - pkg/util/sets
-  - pkg/util/strategicpatch
   - pkg/util/validation
   - pkg/util/validation/field
   - pkg/util/wait
   - pkg/util/yaml
   - pkg/version
   - pkg/watch
-  - third_party/forked/golang/json
-  - third_party/forked/golang/netutil
   - third_party/forked/golang/reflect
 - name: k8s.io/client-go
-  version: afb4606c45bae77c4dc2c15291d4d7d6d792196c
+  version: 1fb83015bea362f028381bc0fcfb2a4e3eb7390b
   subpackages:
   - discovery
   - discovery/fake
@@ -199,10 +192,9 @@ imports:
   - util/flowcontrol
   - util/integer
 - name: k8s.io/code-generator
-  version: 9255fdedbdf0ad39e210a6d6553b811f669cc11d
-  repo: https://github.com/sttts/code-generator
+  version: 0c5165a97e055df28cca8bbcb8b7c8ae1019b3f1
 - name: k8s.io/gengo
-  version: 75356185a9af8f0464efa792e2e9508d5b4be83c
+  version: 9e661e9308f078838e266cca1c673922088c0ea4
 - name: k8s.io/kube-openapi
   version: 868f2f29720b192240e18284659231b440f9cda5
   subpackages:

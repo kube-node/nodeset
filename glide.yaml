@@ -3,6 +3,8 @@ import:
 - package: k8s.io/client-go
   version: release-5.0
 - package: k8s.io/code-generator
-  repo: https://github.com/sttts/code-generator
-  version: sttts-codegen-scripts
+  version: release-1.8
 - package: k8s.io/gengo
+  version: 9e661e9308f078838e266cca1c673922088c0ea4
+- package: k8s.io/apimachinery
+  version: release-1.8

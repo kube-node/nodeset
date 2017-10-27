@@ -18,6 +18,11 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
-source vendor/k8s.io/code-generator/hack/lib/codegen.sh
-
-codegen::generate-groups all github.com/kube-node/nodeset/pkg/client github.com/kube-node/nodeset/pkg nodeset:v1alpha1
+echo Removing old client
+rm -rf "pkg/crd/client"
+SCRIPT_ROOT=$(dirname "${BASH_SOURCE}")
+echo $SCRIPT_ROOT
+./vendor/k8s.io/code-generator/generate-groups.sh all \
+    github.com/kube-node/nodeset/pkg/client github.com/kube-node/nodeset/pkg \
+    nodeset:v1alpha1 \
+    --go-header-file=${SCRIPT_ROOT}/header.txt

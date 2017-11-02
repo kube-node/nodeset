@@ -17,7 +17,7 @@ limitations under the License.
 package fake
 
 import (
-	v1alpha1 "github.com/kube-node/nodeset/pkg/client/clientset_v1alpha1/typed/nodeset/v1alpha1"
+	v1alpha1 "github.com/kube-node/nodeset/pkg/client/clientset/versioned/typed/nodeset/v1alpha1"
 	rest "k8s.io/client-go/rest"
 	testing "k8s.io/client-go/testing"
 )

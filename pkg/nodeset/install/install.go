@@ -17,10 +17,11 @@ limitations under the License.
 package install
 
 import (
-	"github.com/kube-node/nodeset/pkg/nodeset/v1alpha1"
 	"k8s.io/apimachinery/pkg/apimachinery/announced"
 	"k8s.io/apimachinery/pkg/apimachinery/registered"
 	"k8s.io/apimachinery/pkg/runtime"
+
+	"github.com/kube-node/nodeset/pkg/nodeset/v1alpha1"
 )
 
 // Install registers the API group and adds types to a scheme
@@ -29,7 +30,6 @@ func Install(groupFactoryRegistry announced.APIGroupFactoryRegistry, registry *r
 		&announced.GroupMetaFactoryArgs{
 			GroupName:                  v1alpha1.GroupName,
 			VersionPreferenceOrder:     []string{v1alpha1.SchemeGroupVersion.Version},
-			ImportPrefix:               "k8s.io/kubernetes/pkg/apis/nodeset.k8s.io",
 			RootScopedKinds:            nil,
 			AddInternalObjectsToScheme: nil,
 		},

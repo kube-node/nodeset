@@ -17,7 +17,7 @@ limitations under the License.
 package v1alpha1
 
 import (
-	scheme "github.com/kube-node/nodeset/pkg/client/clientset_v1alpha1/scheme"
+	scheme "github.com/kube-node/nodeset/pkg/client/clientset/versioned/scheme"
 	v1alpha1 "github.com/kube-node/nodeset/pkg/nodeset/v1alpha1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	types "k8s.io/apimachinery/pkg/types"
@@ -56,58 +56,10 @@ func newNodeClasses(c *NodesetV1alpha1Client) *nodeClasses {
 	}
 }
 
-// Create takes the representation of a nodeClass and creates it.  Returns the server's representation of the nodeClass, and an error, if there is any.
-func (c *nodeClasses) Create(nodeClass *v1alpha1.NodeClass) (result *v1alpha1.NodeClass, err error) {
-	result = &v1alpha1.NodeClass{}
-	err = c.client.Post().
-		Namespace(v1alpha1.TPRNamespace).
-		Resource("nodeclasses").
-		Body(nodeClass).
-		Do().
-		Into(result)
-	return
-}
-
-// Update takes the representation of a nodeClass and updates it. Returns the server's representation of the nodeClass, and an error, if there is any.
-func (c *nodeClasses) Update(nodeClass *v1alpha1.NodeClass) (result *v1alpha1.NodeClass, err error) {
-	result = &v1alpha1.NodeClass{}
-	err = c.client.Put().
-		Namespace(v1alpha1.TPRNamespace).
-		Resource("nodeclasses").
-		Name(nodeClass.Name).
-		Body(nodeClass).
-		Do().
-		Into(result)
-	return
-}
-
-// Delete takes name of the nodeClass and deletes it. Returns an error if one occurs.
-func (c *nodeClasses) Delete(name string, options *v1.DeleteOptions) error {
-	return c.client.Delete().
-		Namespace(v1alpha1.TPRNamespace).
-		Resource("nodeclasses").
-		Name(name).
-		Body(options).
-		Do().
-		Error()
-}
-
-// DeleteCollection deletes a collection of objects.
-func (c *nodeClasses) DeleteCollection(options *v1.DeleteOptions, listOptions v1.ListOptions) error {
-	return c.client.Delete().
-		Namespace(v1alpha1.TPRNamespace).
-		Resource("nodeclasses").
-		VersionedParams(&listOptions, scheme.ParameterCodec).
-		Body(options).
-		Do().
-		Error()
-}
-
 // Get takes name of the nodeClass, and returns the corresponding nodeClass object, and an error if there is any.
 func (c *nodeClasses) Get(name string, options v1.GetOptions) (result *v1alpha1.NodeClass, err error) {
 	result = &v1alpha1.NodeClass{}
 	err = c.client.Get().
-		Namespace(v1alpha1.TPRNamespace).
 		Resource("nodeclasses").
 		Name(name).
 		VersionedParams(&options, scheme.ParameterCodec).
@@ -120,7 +72,6 @@ func (c *nodeClasses) Get(name string, options v1.GetOptions) (result *v1alpha1.
 func (c *nodeClasses) List(opts v1.ListOptions) (result *v1alpha1.NodeClassList, err error) {
 	result = &v1alpha1.NodeClassList{}
 	err = c.client.Get().
-		Namespace(v1alpha1.TPRNamespace).
 		Resource("nodeclasses").
 		VersionedParams(&opts, scheme.ParameterCodec).
 		Do().
@@ -132,17 +83,58 @@ func (c *nodeClasses) List(opts v1.ListOptions) (result *v1alpha1.NodeClassList,
 func (c *nodeClasses) Watch(opts v1.ListOptions) (watch.Interface, error) {
 	opts.Watch = true
 	return c.client.Get().
-		Namespace(v1alpha1.TPRNamespace).
 		Resource("nodeclasses").
 		VersionedParams(&opts, scheme.ParameterCodec).
 		Watch()
+}
+
+// Create takes the representation of a nodeClass and creates it.  Returns the server's representation of the nodeClass, and an error, if there is any.
+func (c *nodeClasses) Create(nodeClass *v1alpha1.NodeClass) (result *v1alpha1.NodeClass, err error) {
+	result = &v1alpha1.NodeClass{}
+	err = c.client.Post().
+		Resource("nodeclasses").
+		Body(nodeClass).
+		Do().
+		Into(result)
+	return
+}
+
+// Update takes the representation of a nodeClass and updates it. Returns the server's representation of the nodeClass, and an error, if there is any.
+func (c *nodeClasses) Update(nodeClass *v1alpha1.NodeClass) (result *v1alpha1.NodeClass, err error) {
+	result = &v1alpha1.NodeClass{}
+	err = c.client.Put().
+		Resource("nodeclasses").
+		Name(nodeClass.Name).
+		Body(nodeClass).
+		Do().
+		Into(result)
+	return
+}
+
+// Delete takes name of the nodeClass and deletes it. Returns an error if one occurs.
+func (c *nodeClasses) Delete(name string, options *v1.DeleteOptions) error {
+	return c.client.Delete().
+		Resource("nodeclasses").
+		Name(name).
+		Body(options).
+		Do().
+		Error()
+}
+
+// DeleteCollection deletes a collection of objects.
+func (c *nodeClasses) DeleteCollection(options *v1.DeleteOptions, listOptions v1.ListOptions) error {
+	return c.client.Delete().
+		Resource("nodeclasses").
+		VersionedParams(&listOptions, scheme.ParameterCodec).
+		Body(options).
+		Do().
+		Error()
 }
 
 // Patch applies the patch and returns the patched nodeClass.
 func (c *nodeClasses) Patch(name string, pt types.PatchType, data []byte, subresources ...string) (result *v1alpha1.NodeClass, err error) {
 	result = &v1alpha1.NodeClass{}
 	err = c.client.Patch(pt).
-		Namespace(v1alpha1.TPRNamespace).
 		Resource("nodeclasses").
 		SubResource(subresources...).
 		Name(name).

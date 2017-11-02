@@ -11,10 +11,15 @@ jobs:
       - run: dep ensure -vendor-only
       - run: go test ./...
       - run: go vet ./...
+      - run: make _output/nodeset-controller
       - save_cache:
           key: vendor-{{ checksum "Gopkg.lock" }}
           paths:
             - /go/src/github.com/kube-node/nodeset/vendor
+      - persist_to_workspace:
+          root: /go/src/github.com/kube-node/nodeset
+          paths:
+            - .
   build-glide:
     docker:
       - image: circleci/golang:1.9
@@ -26,6 +31,7 @@ jobs:
       - run: glide install --strip-vendor
       - run: go test ./...
       - run: go vet ./...
+      - run: make _output/nodeset-controller
   validate-codegen:
     docker:
       - image: circleci/golang:1.9
@@ -35,3 +41,45 @@ jobs:
       - restore_cache:
           key: vendor-{{ checksum "Gopkg.lock" }}
       - run: ./hack/verify-codegen.sh
+  push-hash:
+    docker:
+      - image: docker:stable
+    working_directory: /go/src/github.com/kube-node/nodeset
+    steps:
+      - checkout
+      - setup_remote_docker
+      - attach_workspace:
+          at: .
+      - run: docker build -t kube-node/nodeset-controller -f cmd/nodeset-controller/Dockerfile .
+      - run: docker login -u $DOCKER_USER -p $DOCKER_PASS
+      - run: docker tag kube-node/nodeset-controller kube-node/nodeset-controller:$CIRCLE_SHA1
+      - run: docker push kube-node/nodeset-controller:$CIRCLE_SHA1
+  push-latest:
+    docker:
+      - image: docker:stable
+    working_directory: /go/src/github.com/kube-node/nodeset
+    steps:
+      - setup_remote_docker
+      - run: docker login -u $DOCKER_USER -p $DOCKER_PASS
+      - run: docker pull kube-node/nodeset-controller:$CIRCLE_SHA1
+      - run: docker tag kube-node/nodeset-controller:$CIRCLE_SHA1 kube-node/nodeset-controller:latest
+      - run: docker push kube-node/nodeset-controller:latest
+workflows:
+  version: 2
+  build_and_test:
+    jobs:
+      - build-dep
+      - build-glide
+      - validate-codegen:
+          requires:
+            - build-dep
+      - push-hash:
+          requires:
+            - validate-codegen
+      - push-latest:
+          requires:
+            - push-hash
+          filters:
+            branches:
+              only:
+                - master

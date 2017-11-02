@@ -3,7 +3,7 @@ all: push
 REPO ?= kube-node/nodeset-controller
 
 push: _output/nodeset-controller
-		docker build -t $(REPO) cmd/nodeset-controller/Dockerfile
+		docker build -t $(REPO) -f cmd/nodeset-controller/Dockerfile .
 		docker push $(REPO)
 
 _output/nodeset-controller:

@@ -27,6 +27,18 @@ type NodeClassResourceType string
 const (
 	NodeClassResourceFile      NodeClassResourceType = "File"
 	NodeClassResourceReference NodeClassResourceType = "Reference"
+
+	NodeClassResourcePlural = "nodeclasses"
+	NodeSetResourcePlural   = "nodesets"
+
+	NodeClassContentAnnotationKey     = "nodeset.k8s.io/nodeclass-content"
+	NodeClassContentHashAnnotationKey = "nodeset.k8s.io/nodeclass-content-hash"
+	NodeClassNameAnnotationKey        = "nodeset.k8s.io/node-class"
+
+	NodeSetGenerationAnnotationKey = "nodeset.k8s.io/nodeset-generation"
+
+	NodeSetNameLabelKey = "nodeset.k8s.io/nodeset"
+	ControllerLabelKey  = "nodeset.k8s.io/controller"
 )
 
 type NodeClassResource struct {
@@ -76,6 +88,9 @@ type NodeClass struct {
 	// NodeController specifes which node controller should provision and
 	// control this class of nodes
 	NodeController string `json:"nodeController,omitempty"`
+
+	// NodeLabels specifies a list of labels each node should get.
+	NodeLabels map[string]string `json:"nodeLabels,omitempty"`
 
 	// Config is free form data containing overridable parameters that the controller
 	// will use
@@ -202,7 +217,7 @@ type NodeSet struct {
 	// +optional
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	// Specification of desired behaviour of the NodeSet.
+	// Specification of desired behavior of the NodeSet.
 	// +optional
 	Spec NodeSetSpec `json:"spec,omitempty"`
 

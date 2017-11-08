@@ -29,7 +29,7 @@ type NodesetV1alpha1Interface interface {
 	NodeSetsGetter
 }
 
-// NodesetV1alpha1Client is used to interact with features provided by the nodeset group.
+// NodesetV1alpha1Client is used to interact with features provided by the nodeset.k8s.io group.
 type NodesetV1alpha1Client struct {
 	restClient rest.Interface
 }

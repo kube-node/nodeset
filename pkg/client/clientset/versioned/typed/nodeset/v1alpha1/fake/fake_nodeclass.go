@@ -31,9 +31,9 @@ type FakeNodeClasses struct {
 	Fake *FakeNodesetV1alpha1
 }
 
-var nodeclassesResource = schema.GroupVersionResource{Group: "nodeset", Version: "v1alpha1", Resource: "nodeclasses"}
+var nodeclassesResource = schema.GroupVersionResource{Group: "nodeset.k8s.io", Version: "v1alpha1", Resource: "nodeclasses"}
 
-var nodeclassesKind = schema.GroupVersionKind{Group: "nodeset", Version: "v1alpha1", Kind: "NodeClass"}
+var nodeclassesKind = schema.GroupVersionKind{Group: "nodeset.k8s.io", Version: "v1alpha1", Kind: "NodeClass"}
 
 // Get takes name of the nodeClass, and returns the corresponding nodeClass object, and an error if there is any.
 func (c *FakeNodeClasses) Get(name string, options v1.GetOptions) (result *v1alpha1.NodeClass, err error) {

@@ -1,0 +1,33 @@
+apiVersion: extensions/v1beta1
+kind: ReplicaSet
+metadata:
+  name: nodeset-controller
+  namespace: kube-system
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: kube-node
+        controller: nodeset
+    spec:
+      containers:
+      - name: controller
+        image: kubenode/nodeset-controller:latest
+        command:
+        - /nodeset-controller
+        args:
+        - --backend=gke
+        - --logtostderr
+        - --v=5
+        imagePullPolicy: Always
+        resources:
+          requests:
+            cpu: 100m
+            memory: 300Mi
+        env:
+        - name: GOOGLE_APPLICATION_CREDENTIALS
+          valueFrom:
+            secretKeyRef:
+              name: nodeset-gcloud-service-account
+              key: private_key

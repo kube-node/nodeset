@@ -1,6 +1,6 @@
 all: push
 
-REPO ?= kube-node/nodeset-controller
+REPO ?= kubenode/nodeset-controller
 
 push: _output/nodeset-controller
 		docker build -t $(REPO) -f cmd/nodeset-controller/Dockerfile .

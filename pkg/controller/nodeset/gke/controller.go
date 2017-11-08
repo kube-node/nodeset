@@ -17,6 +17,7 @@ limitations under the License.
 package gke
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -38,6 +39,7 @@ import (
 	nodesetinformers "github.com/kube-node/nodeset/pkg/client/informers/externalversions/nodeset/v1alpha1"
 	nodesetlisters "github.com/kube-node/nodeset/pkg/client/listers/nodeset/v1alpha1"
 	"github.com/kube-node/nodeset/pkg/nodeset/v1alpha1"
+	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/util/sets"
 )
 
@@ -52,12 +54,16 @@ const (
 	nodeSetFinalizer              = "gke.nodeset-controller.nodeset.k8s.io"
 )
 
+var (
+	invalidGceURLErr = errors.New("invalid gce url")
+)
+
 // Controller is a nodeset controller for GKE node pools
 type Controller struct {
 	nodesetClientset nodesetclientset.Interface
 	nodesetLister    nodesetlisters.NodeSetLister
 	nodesetIndexer   cache.Indexer
-	nodesetsSynched  cache.InformerSynced
+	nodesetsSynced   cache.InformerSynced
 
 	name    string
 	gke     *gke.Service
@@ -70,7 +76,7 @@ type Controller struct {
 }
 
 // New returns a instance of the GKE nodeset controller
-func New(name string, clusterName string, client nodesetclientset.Interface, nodesets nodesetinformers.NodeSetInformer) (*Controller, error) {
+func New(name string, clusterID string, clusterZone string, projectID string, client nodesetclientset.Interface, nodesets nodesetinformers.NodeSetInformer) (*Controller, error) {
 	// index nodesets by uids
 	// TODO: move outside of New
 	err := nodesets.Informer().AddIndexers(map[string]cache.IndexFunc{
@@ -81,9 +87,10 @@ func New(name string, clusterName string, client nodesetclientset.Interface, nod
 	}
 
 	c := &Controller{
-		nodesetLister:   nodesets.Lister(),
-		nodesetIndexer:  nodesets.Informer().GetIndexer(),
-		nodesetsSynched: nodesets.Informer().HasSynced,
+		nodesetLister:    nodesets.Lister(),
+		nodesetIndexer:   nodesets.Informer().GetIndexer(),
+		nodesetsSynced:   nodesets.Informer().HasSynced,
+		nodesetClientset: client,
 
 		name: name,
 
@@ -115,7 +122,7 @@ func New(name string, clusterName string, client nodesetclientset.Interface, nod
 	})
 
 	// get GKE client
-	c.gke, c.gce, c.cluster, err = NewGKEService(clusterName)
+	c.gke, c.gce, c.cluster, err = NewGKEService(clusterID, clusterZone, projectID)
 	if err != nil {
 		return nil, err
 	}
@@ -130,10 +137,10 @@ func (c *Controller) Run(threadiness int, stopCh <-chan struct{}) {
 	// make sure the work queue is shutdown which will trigger workers to end
 	defer c.queue.ShutDown()
 
-	glog.Infof("Starting <NAME> controller")
+	glog.Infof("Starting GKE controller")
 
 	// wait for your secondary caches to fill before starting your work
-	if !cache.WaitForCacheSync(stopCh, c.nodesetsSynched) {
+	if !cache.WaitForCacheSync(stopCh, c.nodesetsSynced) {
 		return
 	}
 
@@ -149,7 +156,7 @@ func (c *Controller) Run(threadiness int, stopCh <-chan struct{}) {
 
 	// wait until we're told to stop
 	<-stopCh
-	glog.Infof("Shutting down <NAME> controller")
+	glog.Infof("Shutting down GKE controller")
 }
 
 func (c *Controller) runWorker() {
@@ -223,17 +230,7 @@ func (c *Controller) syncHandler(key string) error {
 			glog.Warningf("NodeSet %q cannot have empty project or zone.", ns.Name)
 			return nil
 		}
-		comps := strings.SplitN(ns.Name, "-", 2)
-		if comps[0] != zone {
-			glog.Warningf("NodeSet %q has a zone mismatch, annotations say %q, but name say %q", ns.Name, project, comps[0])
-			return nil
-		}
-		if len(comps) != 2 {
-			glog.Warningf("Skipping invalid NodeSet %q.", ns.Name)
-			return nil
-		}
-		name := comps[1]
-		_, err := c.gce.InstanceGroupManagers.Resize(project, zone, name, int64(ns.Spec.Replicas)).Do()
+		_, err := c.gce.InstanceGroupManagers.Resize(project, zone, ns.Name, int64(ns.Spec.Replicas)).Do()
 		if err != nil {
 			return err
 		}
@@ -257,14 +254,35 @@ func (c *Controller) syncHandler(key string) error {
 }
 
 func (c *Controller) runReconciler() {
-	for c.reconsileNodeSets() {
+	for c.reconcileNodeSets() {
 		time.Sleep(5 * time.Minute)
 	}
 }
 
-func (c *Controller) reconsileNodeSets() bool {
+func (c *Controller) getInstanceGroupManager(url string) (*gce.InstanceGroupManager, error) {
+	project, zone, name, err := parseGceURL(url, "instanceGroupManagers")
+	if err != nil {
+		glog.Warningf("parse error of %s/%s/%s InstanceGroupManager url %q", project, zone, name, url)
+		return nil, fmt.Errorf("failed to parse url: %v", err)
+	}
+
+	return c.gce.InstanceGroupManagers.Get(project, zone, name).Do()
+}
+
+func (c *Controller) getZone(url string) (*gce.Zone, error) {
+	project, zone, err := parseProjectZoneFromGceURL(url)
+	if err != nil {
+		glog.Warningf("parse error of %s/%s/%s Zone url %q", project, zone, url)
+		return nil, fmt.Errorf("failed to parse url: %v", err)
+	}
+
+	return c.gce.Zones.Get(project, zone).Do()
+
+}
+
+func (c *Controller) reconcileNodeSets() bool {
 	// get all node sets
-	nodeSets, err := c.nodesetLister.List(nil)
+	nodeSets, err := c.nodesetLister.List(labels.Everything())
 	if err != nil {
 		glog.Warningf("Failed to list NodeSet: %v", err)
 		return true
@@ -274,47 +292,38 @@ func (c *Controller) reconsileNodeSets() bool {
 		unseenNodeSets.Insert(ns.Name)
 	}
 
-	resp, err := c.gke.Projects.Zones.Clusters.NodePools.List(c.cluster.Project, c.cluster.Zone, c.cluster.Name).Do()
+	resp, err := c.gke.Projects.Zones.Clusters.NodePools.List(c.cluster.ProjectID, c.cluster.Zone, c.cluster.ID).Do()
 	if err != nil {
-		glog.Warningf("NodePool reconcile error: %v", err)
+		glog.Warningf("Failed to list NodePools ProjectID=%q Zone=%q ClusterID=%q: %v", c.cluster.ProjectID, c.cluster.Zone, c.cluster.ID, err)
 		return true
 	}
 
 	seenErrors := false
 	for _, pool := range resp.NodePools {
-		autoprovisioned := strings.Contains(pool.Name, nodeAutoprovisioningPrefix)
-		if !autoprovisioned {
-			continue
-		}
-
-		// format is
-		// "https://www.googleapis.com/compute/v1/projects/mwielgus-proj/zones/europe-west1-b/instanceGroupManagers/gke-cluster-1-default-pool-ba78a787-grp"
 		for _, url := range pool.InstanceGroupUrls {
-			project, zone, name, err := parseGceURL(url, "instanceGroupManagers")
+			igm, err := c.getInstanceGroupManager(url)
 			if err != nil {
-				glog.Warningf("parse error of %s/%s/%s InstanceGroupManager url %q", project, zone, name, url)
-				return true
-			}
-
-			igm, err := c.gce.InstanceGroupManagers.Get(project, zone, name).Do()
-			if err != nil {
-				seenErrors = true
-				glog.Warningf("Failed to get InstanceGroupManager %s/%s/%s", project, zone, name)
+				glog.Warningf("Failed to get InstanceGroupManager: %v", err)
 				continue
 			}
 
-			nsName := zone + "-" + name
-			ns, err := c.nodesetLister.Get(nsName)
+			zone, err := c.getZone(igm.Zone)
+			if err != nil {
+				glog.Warningf("Failed to get Zone: %v", err)
+				continue
+			}
+
+			ns, err := c.nodesetLister.Get(igm.Name)
 			if apierrors.IsNotFound(err) {
 				one := intstr.FromInt(1)
 				_, err = c.nodesetClientset.NodesetV1alpha1().NodeSets().Create(&v1alpha1.NodeSet{
 					ObjectMeta: metav1.ObjectMeta{
 						Annotations: map[string]string{
 							nodePoolAnnotationKey: pool.Name,
-							projectAnnotationKey:  project,
-							zoneAnnotationKey:     zone,
+							projectAnnotationKey:  c.cluster.ProjectID,
+							zoneAnnotationKey:     zone.Name,
 						},
-						Name:       nsName,
+						Name:       igm.Name,
 						Finalizers: []string{nodeSetFinalizer},
 					},
 					Spec: v1alpha1.NodeSetSpec{
@@ -327,23 +336,23 @@ func (c *Controller) reconsileNodeSets() bool {
 						// TODO: set more of the fields
 					},
 				})
+				if err != nil {
+					glog.Errorf("Failed to create NodeSet %q: %v", igm.Name, err)
+					continue
+				}
+				glog.V(4).Infof("Created nodeset")
 				continue
 			} else if err != nil {
-				glog.Warningf("Failed to get NodeSet %q: %v", name, err)
+				glog.Warningf("Failed to get NodeSet %q: %v", igm.Name, err)
 				continue
 			}
 
 			// we have seen this one
-			unseenNodeSets.Delete(nsName)
-
-			// check whether spec wasn't changed, if it was skip the reconsilation
-			if ns.Spec.Replicas != ns.Spec.Replicas {
-				continue
-			}
+			unseenNodeSets.Delete(igm.Name)
 
 			// update NodeSet
 			_, err = c.updateNodeSetWithRetries(10, ns, func(old *v1alpha1.NodeSet) (*v1alpha1.NodeSet, error) {
-				if old.Spec.Replicas == old.Status.Replicas {
+				if old.Spec.Replicas == old.Spec.Replicas {
 					old.Spec.Replicas = int32(igm.TargetSize)
 					old.Status.Replicas = int32(igm.TargetSize)
 				}
@@ -351,7 +360,7 @@ func (c *Controller) reconsileNodeSets() bool {
 			})
 			if err != nil {
 				seenErrors = true
-				glog.Warningf("Failed to update spec.replicas in NodeSet %q", nsName)
+				glog.Warningf("Failed to update spec.replicas in NodeSet %q", igm.Name)
 			}
 		}
 	}
@@ -434,17 +443,39 @@ func (c *Controller) updateNodeSetWithRetries(retries int, ns *v1alpha1.NodeSet,
 	return nil, fmt.Errorf("giving up updating NodeSet %q after %d retries", nsName, initialRetries)
 }
 
-func parseGceURL(url, expectedResource string) (project string, zone string, name string, err error) {
-	errMsg := fmt.Errorf("Wrong url: expected format https://content.googleapis.com/compute/v1/projects/<project-id>/zones/<zone>/%s/<name>, got %s", expectedResource, url)
+func parseProjectZoneFromGceURL(url string) (project, zone string, err error) {
+	if !isValidGceURL(url) {
+		return "", "", invalidGceURLErr
+	}
+
+	splitted := strings.Split(strings.Split(url, gceDomainSufix)[1], "/")
+	if len(splitted) != 3 || splitted[1] != "zones" {
+		return "", "", invalidGceURLErr
+	}
+	project = splitted[0]
+	zone = splitted[2]
+	return project, zone, nil
+
+}
+
+func isValidGceURL(url string) bool {
 	if !strings.Contains(url, gceDomainSufix) {
-		return "", "", "", errMsg
+		return false
 	}
 	if !strings.HasPrefix(url, gceURLSchema) {
-		return "", "", "", errMsg
+		return false
 	}
+	return true
+}
+
+func parseGceURL(url, expectedResource string) (project string, zone string, name string, err error) {
+	if !isValidGceURL(url) {
+		return "", "", "", invalidGceURLErr
+	}
+
 	splitted := strings.Split(strings.Split(url, gceDomainSufix)[1], "/")
 	if len(splitted) != 5 || splitted[1] != "zones" {
-		return "", "", "", errMsg
+		return "", "", "", invalidGceURLErr
 	}
 	if splitted[3] != expectedResource {
 		return "", "", "", fmt.Errorf("Wrong resource in url: expected %s, got %s", expectedResource, splitted[3])

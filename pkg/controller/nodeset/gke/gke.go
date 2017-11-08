@@ -17,6 +17,7 @@ limitations under the License.
 package gke
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"strings"
@@ -31,21 +32,22 @@ import (
 
 // Cluster contains information about a GKE cluster
 type Cluster struct {
-	Project, Zone, Name string
+	ProjectID, Zone, ID string
 }
 
 // NewGKEService returns a client to interact with a GKE cluster
-func NewGKEService(clusterName string) (*gke.Service, *gce.Service, Cluster, error) {
+func NewGKEService(clusterID, zone, projectID string) (*gke.Service, *gce.Service, Cluster, error) {
 	// Create Google Compute Engine token.
 	var err error
 	tokenSource := google.ComputeTokenSource("")
 	if len(os.Getenv("GOOGLE_APPLICATION_CREDENTIALS")) > 0 {
-		tokenSource, err = google.DefaultTokenSource(oauth2.NoContext, gce.ComputeScope)
+		tokenSource, err = google.DefaultTokenSource(context.Background(), gce.ComputeScope, gke.CloudPlatformScope)
 		if err != nil {
 			return nil, nil, Cluster{}, err
 		}
 	}
-	var projectID, zone string
+
+	// In case its not specified, get it via the metadata api
 	if len(projectID) == 0 || len(zone) == 0 {
 		projectID, zone, err = getProjectAndZone()
 		if err != nil {
@@ -55,7 +57,7 @@ func NewGKEService(clusterName string) (*gke.Service, *gce.Service, Cluster, err
 	glog.V(1).Infof("GCE projectID=%s Zone=%s", projectID, zone)
 
 	// Create Google Compute Engine service.
-	client := oauth2.NewClient(oauth2.NoContext, tokenSource)
+	client := oauth2.NewClient(context.Background(), tokenSource)
 
 	gceService, err := gce.New(client)
 	if err != nil {
@@ -67,68 +69,11 @@ func NewGKEService(clusterName string) (*gke.Service, *gce.Service, Cluster, err
 		return nil, nil, Cluster{}, err
 	}
 
-	return gkeService, gceService, Cluster{projectID, zone, clusterName}, nil
+	return gkeService, gceService, Cluster{ProjectID: projectID, Zone: zone, ID: clusterID}, nil
 }
-
-/*
-// Gets all registered node pools
-func (m *gceManagerImpl) fetchAllNodePools() error {
-	m.assertGKE()
-
-	nodePoolsResponse, err := m.service.Projects.Zones.Clusters.NodePools.List(m.projectId, m.Zone, m.clusterName).Do()
-	if err != nil {
-		return err
-	}
-
-	existingMigs := map[GceRef]struct{}{}
-
-	for _, nodePool := range nodePoolsResponse.NodePools {
-		autoprovisioned := strings.Contains(nodePool.Name, nodeAutoprovisioningPrefix)
-		autoscaled := nodePool.Autoscaling != nil && nodePool.Autoscaling.Enabled
-		if !autoprovisioned && !autoscaled {
-			continue
-		}
-		// format is
-		// "https://www.googleapis.com/compute/v1/projects/mwielgus-proj/zones/europe-west1-b/instanceGroupManagers/gke-cluster-1-default-pool-ba78a787-grp"
-		for _, igurl := range nodePool.InstanceGroupUrls {
-			Project, Zone, name, err := parseGceURL(igurl, "instanceGroupManagers")
-			if err != nil {
-				return err
-			}
-			mig := &Mig{
-				GceRef: GceRef{
-					Name:    name,
-					Zone:    Zone,
-					Project: Project,
-				},
-				gceManager:      m,
-				exist:           true,
-				autoprovisioned: autoprovisioned,
-				nodePoolName:    nodePool.Name,
-			}
-			existingMigs[mig.GceRef] = struct{}{}
-
-			if autoscaled {
-				mig.minSize = int(nodePool.Autoscaling.MinNodeCount)
-				mig.maxSize = int(nodePool.Autoscaling.MaxNodeCount)
-			} else if autoprovisioned {
-				mig.minSize = minAutoprovisionedSize
-				mig.maxSize = maxAutoprovisionedSize
-			}
-			m.RegisterMig(mig)
-		}
-	}
-	for _, mig := range m.getMigs() {
-		if _, found := existingMigs[mig.config.GceRef]; !found {
-			m.UnregisterMig(mig.config)
-		}
-	}
-	return nil
-}
-
-*/
 
 // Code borrowed from gce cloud provider. Reuse the original as soon as it becomes public.
+// getProjectAndZone loads the project & zone from the metadata api
 func getProjectAndZone() (string, string, error) {
 	result, err := metadata.Get("instance/Zone")
 	if err != nil {

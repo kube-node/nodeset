@@ -49,8 +49,14 @@ type Options struct {
 	// BackendName is the name of the backend to use.
 	BackendName string
 
-	// GKEClusterName is the cluster name for GKE.
-	GKEClusterName string
+	// GKEClusterID is the cluster ID for GKE.
+	GKEClusterID string
+
+	// GKEClusterZone is the zone of the cluster in GKE
+	GKEClusterZone string
+
+	// GKEProjectID is the google project ID
+	GKEProjectID string
 }
 
 var validBackends = []string{"node", "gke"}
@@ -72,7 +78,9 @@ func (s *Options) AddFlags(fs *pflag.FlagSet) {
 	fs.Int32Var(&s.KubeAPIBurst, "kube-api-burst", s.KubeAPIBurst, "Burst to use while talking with kubernetes apiserver")
 	fs.StringVar(&s.ControllerName, "controller-name", s.ControllerName, "Name of the NodeSet controller, used to select which pods will be processed by this controller, based on pod's \"spec.ControllerName\".")
 	fs.StringVar(&s.BackendName, "backend", s.ControllerName, fmt.Sprintf("The backend to use (supported: %s).", strings.Join(validBackends, ", ")))
-	fs.StringVar(&s.GKEClusterName, "gke-cluster", s.GKEClusterName, "The cluster name in GKE if that backend is enabled.")
+	fs.StringVar(&s.GKEClusterID, "gke-cluster-id", s.GKEClusterID, "The cluster name in GKE if that backend is enabled.")
+	fs.StringVar(&s.GKEClusterZone, "gke-zone", s.GKEClusterZone, "The zone of the cluster in GKE if that backend is enabled.")
+	fs.StringVar(&s.GKEProjectID, "gke-project-id", s.GKEProjectID, "The project ID in google if the GKE backend is enabled.")
 }
 
 // Validate is used to validate the options and config before launching.
@@ -85,7 +93,7 @@ func (s *Options) Validate() error {
 	}
 
 	if s.BackendName == "gke" {
-		if s.GKEClusterName == "" {
+		if s.GKEClusterID == "" {
 			errs = append(errs, errors.New("GKE cluster name is unset"))
 		}
 	}

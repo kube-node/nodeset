@@ -78,7 +78,7 @@ func Run(s *options.Options, stopCh <-chan struct{}) error {
 		}
 		go nodesetController.Run(2, stopCh)
 	case "gke":
-		nodesetController, err := gkenodeset.New(s.ControllerName, s.GKEClusterName, nodesetClient, nodesetInformers.Nodeset().V1alpha1().NodeSets())
+		nodesetController, err := gkenodeset.New(s.ControllerName, s.GKEClusterID, s.GKEClusterZone, s.GKEProjectID, nodesetClient, nodesetInformers.Nodeset().V1alpha1().NodeSets())
 		if err != nil {
 			return err
 		}

@@ -10,39 +10,72 @@ import (
 )
 
 func TestController_syncNodeSetVersion(t *testing.T) {
-	nodeset := &v1alpha1.NodeSet{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:        "testnoteset1",
-			Annotations: map[string]string{v1alpha1.NodeClassContentHashAnnotationKey: "old-hash"},
+	tests := []struct {
+		name string
+		nodeset *v1alpha1.NodeSet
+		nodeclass *v1alpha1.NodeClass
+	}{
+		{
+			name: "successful",
+			nodeset: &v1alpha1.NodeSet{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:        "testnoteset1",
+					Annotations: map[string]string{v1alpha1.NodeClassContentHashAnnotationKey: "old-hash"},
+				},
+				Spec: v1alpha1.NodeSetSpec{
+					NodeClass: "testclass1",
+				},
+				Status: v1alpha1.NodeSetStatus{
+					ObservedGeneration: 0,
+				},
+			},
+			nodeclass: &v1alpha1.NodeClass{
+				ObjectMeta:     metav1.ObjectMeta{Name: "testclass1"},
+				NodeLabels:     map[string]string{"foo": "1", "bar": "2"},
+				NodeController: "testcontroller",
+				Config:         runtime.RawExtension{Raw: []byte("")},
+			},
 		},
-		Spec: v1alpha1.NodeSetSpec{
-			NodeClass: "testclass1",
-		},
-		Status: v1alpha1.NodeSetStatus{
-			ObservedGeneration: 0,
+		{
+			name: "nil annotations map",
+			nodeset: &v1alpha1.NodeSet{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:        "testnoteset1",
+					Annotations: nil,
+				},
+				Spec: v1alpha1.NodeSetSpec{
+					NodeClass: "testclass1",
+				},
+				Status: v1alpha1.NodeSetStatus{
+					ObservedGeneration: 0,
+				},
+			},
+			nodeclass: &v1alpha1.NodeClass{
+				ObjectMeta:     metav1.ObjectMeta{Name: "testclass1"},
+				NodeLabels:     map[string]string{"foo": "1", "bar": "2"},
+				NodeController: "testcontroller",
+				Config:         runtime.RawExtension{Raw: []byte("")},
+			},
 		},
 	}
 
-	nodeclass := &v1alpha1.NodeClass{
-		ObjectMeta:     metav1.ObjectMeta{Name: "testclass1"},
-		NodeLabels:     map[string]string{"foo": "1", "bar": "2"},
-		NodeController: "testcontroller",
-		Config:         runtime.RawExtension{Raw: []byte("")},
-	}
-
-	c := newFakeController([]runtime.Object{nodeclass}, []runtime.Object{})
-	changedNodeset, err := c.syncNodeSetVersion(nodeset)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if changedNodeset == nil {
-		t.Fatalf("no changed happened on the nodeset")
-	}
-	if changedNodeset.Status.ObservedGeneration != 1 {
-		t.Errorf("nodeset observedGeneration was not incremented")
-	}
-	if changedNodeset.Annotations[v1alpha1.NodeClassContentHashAnnotationKey] == "old-hash" {
-		t.Errorf("nodeset nodeclass hash annotation was not updated")
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			c := newFakeController([]runtime.Object{test.nodeclass}, []runtime.Object{})
+			changedNodeset, err := c.syncNodeSetVersion(test.nodeset)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if changedNodeset == nil {
+				t.Fatalf("no changed happened on the nodeset")
+			}
+			if changedNodeset.Status.ObservedGeneration != 1 {
+				t.Errorf("nodeset observedGeneration was not incremented")
+			}
+			if changedNodeset.Annotations[v1alpha1.NodeClassContentHashAnnotationKey] == "old-hash" {
+				t.Errorf("nodeset nodeclass hash annotation was not updated")
+			}
+		})
 	}
 }
 

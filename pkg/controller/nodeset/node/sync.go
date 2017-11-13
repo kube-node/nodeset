@@ -69,6 +69,9 @@ func (c *Controller) syncNodeSetVersion(nodeset *v1alpha1.NodeSet) (changedNodeS
 	}
 
 	if nodeset.Annotations[v1alpha1.NodeClassContentHashAnnotationKey] != hash {
+		if nodeset.Annotations == nil {
+			nodeset.Annotations = map[string]string{}
+		}
 		nodeset.Annotations[v1alpha1.NodeClassContentHashAnnotationKey] = hash
 		nodeset.Status.ObservedGeneration = nodeset.Status.ObservedGeneration + 1
 		return nodeset, nil

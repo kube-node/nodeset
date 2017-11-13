@@ -1,5 +1,5 @@
-# Nodeset
-Generic nodeset for Kubernetes
+# Kube-Node / NodeSet
+kube-node is a minimalistic API which enables Kubernetes to manage its nodes by itself. The goal is to have a higher abstraction layer for managed k8s nodes and to be able to  integrate Kubernetes with different providers in a generic way. It is intended to live outside of core Kubernetes and add optional node management features to Kubernetes clusters.
 
 ## API Proposal
 [here](https://github.com/kube-node/nodeset/blob/master/proposal.md)

@@ -11,6 +11,10 @@ spec:
         app: kube-node
         controller: nodeset
     spec:
+      volumes:
+      - name: gcp-account
+        secret:
+          secretName: nodeset-gcloud-service-account
       containers:
       - name: controller
         image: kubenode/nodeset-controller:latest
@@ -18,6 +22,9 @@ spec:
         - /nodeset-controller
         args:
         - --backend=gke
+        - --gke-cluster-id=CLUSTER
+        - --gke-project-id=PROJECT_ID
+        - --gke-zone=ZONE
         - --logtostderr
         - --v=5
         imagePullPolicy: Always
@@ -25,9 +32,10 @@ spec:
           requests:
             cpu: 100m
             memory: 300Mi
+        volumeMounts:
+        - name: gcp-account
+          readOnly: true
+          mountPath: "/etc/gcp"
         env:
         - name: GOOGLE_APPLICATION_CREDENTIALS
-          valueFrom:
-            secretKeyRef:
-              name: nodeset-gcloud-service-account
-              key: private_key
+          value: "/etc/gcp/secret.json"

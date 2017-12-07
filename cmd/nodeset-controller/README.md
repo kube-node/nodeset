@@ -31,9 +31,14 @@ Create the service account token as a secret:
 
 ``` shell
 $ gcloud iam service-accounts keys create secret.json --iam-account=nodeset@<PROJECT>.iam.gserviceaccount.com
-$ jq -r ".private_key" secret.json > private_key
-$ kubectl create secret generic nodeset-gcloud-service-account --from-file=private_key --namespace kube-system
+$ kubectl create secret generic nodeset-gcloud-service-account --from-file=SERVICE_ACCOUNT_FILE.json --namespace kube-system
 ```
+
+Update the specific values in the `gke-replicaset.yaml`
+
+* `gke-cluster-id`
+* `gke-project-id`
+* `gke-zone`
 
 Create the ReplicaSet:
 

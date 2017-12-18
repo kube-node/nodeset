@@ -31,20 +31,22 @@ type Interface interface {
 }
 
 type version struct {
-	internalinterfaces.SharedInformerFactory
+	factory          internalinterfaces.SharedInformerFactory
+	namespace        string
+	tweakListOptions internalinterfaces.TweakListOptionsFunc
 }
 
 // New returns a new Interface.
-func New(f internalinterfaces.SharedInformerFactory) Interface {
-	return &version{f}
+func New(f internalinterfaces.SharedInformerFactory, namespace string, tweakListOptions internalinterfaces.TweakListOptionsFunc) Interface {
+	return &version{factory: f, namespace: namespace, tweakListOptions: tweakListOptions}
 }
 
 // NodeClasses returns a NodeClassInformer.
 func (v *version) NodeClasses() NodeClassInformer {
-	return &nodeClassInformer{factory: v.SharedInformerFactory}
+	return &nodeClassInformer{factory: v.factory, tweakListOptions: v.tweakListOptions}
 }
 
 // NodeSets returns a NodeSetInformer.
 func (v *version) NodeSets() NodeSetInformer {
-	return &nodeSetInformer{factory: v.SharedInformerFactory}
+	return &nodeSetInformer{factory: v.factory, tweakListOptions: v.tweakListOptions}
 }

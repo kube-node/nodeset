@@ -19,6 +19,8 @@ limitations under the License.
 package v1alpha1
 
 import (
+	time "time"
+
 	versioned "github.com/kube-node/nodeset/pkg/client/clientset/versioned"
 	internalinterfaces "github.com/kube-node/nodeset/pkg/client/informers/externalversions/internalinterfaces"
 	v1alpha1 "github.com/kube-node/nodeset/pkg/client/listers/nodeset/v1alpha1"
@@ -27,7 +29,6 @@ import (
 	runtime "k8s.io/apimachinery/pkg/runtime"
 	watch "k8s.io/apimachinery/pkg/watch"
 	cache "k8s.io/client-go/tools/cache"
-	time "time"
 )
 
 // NodeSetInformer provides access to a shared informer and lister for
@@ -38,19 +39,33 @@ type NodeSetInformer interface {
 }
 
 type nodeSetInformer struct {
-	factory internalinterfaces.SharedInformerFactory
+	factory          internalinterfaces.SharedInformerFactory
+	tweakListOptions internalinterfaces.TweakListOptionsFunc
 }
 
 // NewNodeSetInformer constructs a new informer for NodeSet type.
 // Always prefer using an informer factory to get a shared informer instead of getting an independent
 // one. This reduces memory footprint and number of connections to the server.
 func NewNodeSetInformer(client versioned.Interface, resyncPeriod time.Duration, indexers cache.Indexers) cache.SharedIndexInformer {
+	return NewFilteredNodeSetInformer(client, resyncPeriod, indexers, nil)
+}
+
+// NewFilteredNodeSetInformer constructs a new informer for NodeSet type.
+// Always prefer using an informer factory to get a shared informer instead of getting an independent
+// one. This reduces memory footprint and number of connections to the server.
+func NewFilteredNodeSetInformer(client versioned.Interface, resyncPeriod time.Duration, indexers cache.Indexers, tweakListOptions internalinterfaces.TweakListOptionsFunc) cache.SharedIndexInformer {
 	return cache.NewSharedIndexInformer(
 		&cache.ListWatch{
 			ListFunc: func(options v1.ListOptions) (runtime.Object, error) {
+				if tweakListOptions != nil {
+					tweakListOptions(&options)
+				}
 				return client.NodesetV1alpha1().NodeSets().List(options)
 			},
 			WatchFunc: func(options v1.ListOptions) (watch.Interface, error) {
+				if tweakListOptions != nil {
+					tweakListOptions(&options)
+				}
 				return client.NodesetV1alpha1().NodeSets().Watch(options)
 			},
 		},
@@ -60,12 +75,12 @@ func NewNodeSetInformer(client versioned.Interface, resyncPeriod time.Duration, 
 	)
 }
 
-func defaultNodeSetInformer(client versioned.Interface, resyncPeriod time.Duration) cache.SharedIndexInformer {
-	return NewNodeSetInformer(client, resyncPeriod, cache.Indexers{cache.NamespaceIndex: cache.MetaNamespaceIndexFunc})
+func (f *nodeSetInformer) defaultInformer(client versioned.Interface, resyncPeriod time.Duration) cache.SharedIndexInformer {
+	return NewFilteredNodeSetInformer(client, resyncPeriod, cache.Indexers{cache.NamespaceIndex: cache.MetaNamespaceIndexFunc}, f.tweakListOptions)
 }
 
 func (f *nodeSetInformer) Informer() cache.SharedIndexInformer {
-	return f.factory.InformerFor(&nodeset_v1alpha1.NodeSet{}, defaultNodeSetInformer)
+	return f.factory.InformerFor(&nodeset_v1alpha1.NodeSet{}, f.defaultInformer)
 }
 
 func (f *nodeSetInformer) Lister() v1alpha1.NodeSetLister {

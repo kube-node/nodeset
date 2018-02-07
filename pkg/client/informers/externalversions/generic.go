@@ -20,6 +20,7 @@ package externalversions
 
 import (
 	"fmt"
+
 	v1alpha1 "github.com/kube-node/nodeset/pkg/nodeset/v1alpha1"
 	schema "k8s.io/apimachinery/pkg/runtime/schema"
 	cache "k8s.io/client-go/tools/cache"
@@ -51,7 +52,7 @@ func (f *genericInformer) Lister() cache.GenericLister {
 // TODO extend this to unknown resources with a client pool
 func (f *sharedInformerFactory) ForResource(resource schema.GroupVersionResource) (GenericInformer, error) {
 	switch resource {
-	// Group=Nodeset, Version=V1alpha1
+	// Group=nodeset.k8s.io, Version=v1alpha1
 	case v1alpha1.SchemeGroupVersion.WithResource("nodeclasses"):
 		return &genericInformer{resource: resource.GroupResource(), informer: f.Nodeset().V1alpha1().NodeClasses().Informer()}, nil
 	case v1alpha1.SchemeGroupVersion.WithResource("nodesets"):

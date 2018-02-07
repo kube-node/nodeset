@@ -265,6 +265,15 @@
 
 [[projects]]
   branch = "master"
+  name = "golang.org/x/tools"
+  packages = [
+    "go/ast/astutil",
+    "imports"
+  ]
+  revision = "66487607e2081c7c2af2281c62c14ee000d5024b"
+
+[[projects]]
+  branch = "master"
   name = "google.golang.org/api"
   packages = [
     "compute/v1",
@@ -573,7 +582,7 @@
     "parser",
     "types"
   ]
-  revision = "b58fc7edb82e0c6ffc9b8aef61813c7261b785d4"
+  revision = "b6c426f7730e6d66e6e476a85d1c3eb7633880e0"
 
 [[projects]]
   branch = "master"
@@ -584,6 +593,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "73dc8b9b4f9208e4aa3b483ba8189700995373d9abec9ef2c4756dc3ce3253d6"
+  inputs-digest = "a7543eb290e98d4665e766f0208bf613cff4386d2b4f45438eedb737620bd4e8"
   solver-name = "gps-cdcl"
   solver-version = 1

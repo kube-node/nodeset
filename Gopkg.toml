@@ -18,4 +18,4 @@ required = ["k8s.io/code-generator/cmd/client-gen"]
 
 [[override]]
   name = "k8s.io/gengo"
-  revision = "b58fc7edb82e0c6ffc9b8aef61813c7261b785d4"
+  revision = "b6c426f7730e6d66e6e476a85d1c3eb7633880e0"
